@@ -106,6 +106,7 @@
   <div class="row"><label>属痛 倍率</label><input id="painMult" type="number" step="0.01" value="1.15"></div>
   <div class="row"><label>属弱 倍率</label><input id="weakMult" type="number" step="0.01" value="1.15"></div>
   <div class="row"><label>属会 倍率</label><input id="elemCritMult" type="number" step="0.01" value="1.15"></div>
+  <div class="row"><label>笛子属性攻击力提升</label><input id="hornMult" type="number" step="0.01" value="1.0"></div>
   <div class="row"><label>属性吸收（0.3=30%）</label><input id="elemAbsorb" type="number" step="0.01" value="0.3"></div>
 </div>
 
@@ -146,6 +147,7 @@ function calc() {
   const painMult = +document.getElementById('painMult').value || 1;
   const weakMult = +document.getElementById('weakMult').value || 1;
   const elemCritMult = +document.getElementById('elemCritMult').value || 1;
+  const hornMult = +document.getElementById('hornMult').value || 1;
   const elemAbsorb = +document.getElementById('elemAbsorb').value || 0;
 
   // 属性值计算
@@ -154,7 +156,7 @@ function calc() {
   const elemPercent = elemTotal / 100;
 
   // 属性伤害
-  const elemDmg = elemPercent * painMult * weakMult * elemCritMult * elemAbsorb * physPanel;
+  const elemDmg = elemPercent * painMult * weakMult * elemCritMult * hornMult * elemAbsorb * physPanel;
 
   const total = physDmg + elemDmg;
 
@@ -177,8 +179,8 @@ function calc() {
     <div style="margin-top:8px;">属性值合计 = ${f(elemBase, 3)} + ${f(elemAtkFlat)} + ${f(chainFlat)} + ${f(fumoFlat)} + ${f(dragonFlat, 3)} = <b>${f(elemTotal, 3)}</b></div>
     <div style="font-size:0.9em; color:#777;">自带 + 属性攻击5加点 + 连击2 + 伏魔2 + 龙转</div>
 
-    <div style="margin-top:8px;">属性伤害 = (${f(elemTotal, 3)} ÷ 100) × ${f(painMult)} × ${f(weakMult)} × ${f(elemCritMult)} × ${f(elemAbsorb)} × ${f(physPanel)} = <b style="color:#ffcc66;">${f(elemDmg)}</b></div>
-    <div style="font-size:0.9em; color:#777;">(属性值÷100) × 属痛 × 属弱 × 属会 × 属性吸收 × 物理面板</div>
+    <div style="margin-top:8px;">属性伤害 = (${f(elemTotal, 3)} ÷ 100) × ${f(painMult)} × ${f(weakMult)} × ${f(elemCritMult)} × ${f(hornMult)} × ${f(elemAbsorb)} × ${f(physPanel)} = <b style="color:#ffcc66;">${f(elemDmg)}</b></div>
+    <div style="font-size:0.9em; color:#777;">(属性值÷100) × 属痛 × 属弱 × 属会 × 笛子 × 属性吸收 × 物理面板</div>
 
     <div style="color:#88ccff; margin:12px 0 6px;">最终伤害</div>
     <div>${f(physDmg)} + ${f(elemDmg)} = <b style="color:#ffcc66; font-size:1.15em;">${f(total)}</b></div>
