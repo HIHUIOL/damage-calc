@@ -164,7 +164,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ===== 默认值 =====
+// ===== 默认值（重置时用这个） =====
 const DEFAULTS = {
   physPanel: 736,
   critMult: 1.3,
@@ -303,14 +303,15 @@ document.getElementById('btnLoad').addEventListener('click', () => {
 });
 
 document.getElementById('btnReset').addEventListener('click', () => {
-  if (confirm('确定重置为默认值？未保存的修改会丢失。')) {
+  if (confirm('重置为默认参考值？你保存的存档不会被删除，可以点读取恢复。')) {
     applyData(DEFAULTS);
-    showToast('已重置');
+    showToast('已重置为默认值');
   }
 });
 
-// 初始化：先用默认值，不自动读存档
-applyData(DEFAULTS);
+// 初始化：自动读取存档，没有就用默认值
+const saved = loadData();
+applyData(saved || DEFAULTS);
 
 // 注册 Service Worker
 if ('serviceWorker' in navigator) {
