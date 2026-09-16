@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>属贯伤害计算器</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: #1a1a1a;
+    color: #e0e0e0;
+    margin: 0;
+    padding: 16px;
+    line-height: 1.5;
+  }
+  h1 { font-size: 1.3em; margin: 0 0 16px; color: #ffcc66; }
+  .card {
+    background: #262626;
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .card h2 {
+    font-size: 0.95em;
+    margin: 0 0 10px;
+    color: #88ccff;
+    font-weight: 600;
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    gap: 8px;
+  }
+  .row label { flex: 1; font-size: 0.9em; color: #bbb; }
+  .row input {
+    width: 90px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid #444;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 0.9em;
+    text-align: right;
+  }
+  .row input:focus { outline: none; border-color: #ffcc66; }
+  .result {
+    background: #2a2a1a;
+    border: 1px solid #ffcc66;
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    margin-top: 16px;
+  }
+  .result .big {
+    font-size: 2.2em;
+    font-weight: 700;
+    color: #ffcc66;
+  }
+  .result .sub {
+    font-size: 0.85em;
+    color: #999;
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+
+<h1>属贯伤害计算器</h1>
+
+<div class="card">
+  <h2>物理部分</h2>
+  <div class="row"><label>物理面板</label><input id="physPanel" type="number" value="736"></div>
+  <div class="row"><label>会心伤害倍率</label><input id="critMult" type="number" step="0.01" value="1.3"></div>
+  <div class="row"><label>动作值（%）</label><input id="motion" type="number" step="0.1" value="10"></div>
+</div>
+
+<div class="card">
+  <h2>属性基础</h2>
+  <div class="row"><label>属贯自带属性</label><input id="baseElem" type="number" value="22"></div>
+  <div class="row"><label>属性攻击5 倍率</label><input id="elemAtkMult" type="number" step="0.01" value="1.2"></div>
+  <div class="row"><label>奋斗 倍率</label><input id="fendouMult" type="number" step="0.01" value="1.2"></div>
+  <div class="row"><label>钢壳 倍率</label><input id="steelMult" type="number" step="0.01" value="1.1"></div>
+</div>
+
+<div class="card">
+  <h2>属性固定加点</h2>
+  <div class="row"><label>属性攻击5 加点</label><input id="elemAtkFlat" type="number" value="4"></div>
+  <div class="row"><label>连击2</label><input id="chainFlat" type="number" value="7"></div>
+  <div class="row"><label>伏魔2（3虫）</label><input id="fumoFlat" type="number" value="15"></div>
+  <div class="row"><label>龙转（耐性转属性）</label><input id="dragonFlat" type="number" step="0.01" value="10.72"></div>
+</div>
+
+<div class="card">
+  <h2>属性乘区</h2>
+  <div class="row"><label>属痛 倍率</label><input id="painMult" type="number" step="0.01" value="1.15"></div>
+  <div class="row"><label>属弱 倍率</label><input id="weakMult" type="number" step="0.01" value="1.15"></div>
+  <div class="row"><label>属会 倍率</label><input id="elemCritMult" type="number" step="0.01" value="1.15"></div>
+  <div class="row"><label>属性吸收（0.3=30%）</label><input id="elemAbsorb" type="number" step="0.01" value="0.3"></div>
+</div>
+
+<div class="result">
+  <div class="big" id="totalDmg">--</div>
+  <div class="sub">最终伤害</div>
+</div>
+
+<div class="card" style="margin-top:12px;">
+  <h2>计算公式</h2>
+  <div id="formulaBox" style="font-size:0.82em; color:#aaa; line-height:1.8; word-break:break-all;"></div>
+</div>
+
+<script>
+function calc() {
+  // 物理部分
+  const physPanel = +document.getElementById('physPanel').value || 0;
+  const critMult = +document.getElementById('critMult').value || 0;
+  const motion = +document.getElementById('motion').value || 0;
+  const physDmg = physPanel * critMult * (motion / 100);
+
+  // 属性基础
+  const baseElem = +document.getElementById('baseElem').value || 0;
+  const elemAtkMult = +document.getElementById('elemAtkMult').value || 1;
+  const fendouMult = +document.getElementById('fendouMult').value || 1;
+  const steelMult = +document.getElementById('steelMult').value || 1;
+
+  // 固定加点
+  const elemAtkFlat = +document.getElementById('elemAtkFlat').value || 0;
+  const chainFlat = +document.getElementById('chainFlat').value || 0;
+  const fumoFlat = +document.getElementById('fumoFlat').value || 0;
+  const dragonFlat = +document.getElementById('dragonFlat').value || 0;
+
+  // 属性乘区
+  const painMult = +document.getElementById('painMult').value || 1;
+  const weakMult = +document.getElementById('weakMult').value || 1;
+  const elemCritMult = +document.getElementById('elemCritMult').value || 1;
+  const elemAbsorb = +document.getElementById('elemAbsorb').value || 0;
+
+  // 属性值计算
+  const elemBase = baseElem * elemAtkMult * fendouMult * steelMult;
+  const elemTotal = elemBase + elemAtkFlat + chainFlat + fumoFlat + dragonFlat;
+  const elemPercent = elemTotal / 100;
+
+  // 属性伤害
+  const elemDmg = elemPercent * painMult * weakMult * elemCritMult * elemAbsorb * physPanel;
+
+  const total = physDmg + elemDmg;
+
+  document.getElementById('totalDmg').textContent = total.toFixed(2);
+
+  // 公式展示
+  const f = (n, d = 2) => Number(n).toFixed(d);
+  const formulaHTML = `
+    <div style="color:#88ccff; margin-bottom:6px;">物理部分</div>
+    <div>${f(physPanel)} × ${f(critMult)} × ${f(motion / 100, 4)} = <b style="color:#ffcc66;">${f(physDmg)}</b></div>
+    <div style="font-size:0.9em; color:#777;">物理面板 × 会心倍率 × 动作值</div>
+
+    <div style="color:#88ccff; margin:12px 0 6px;">属性部分</div>
+    <div>自带属性 = ${f(baseElem)} × ${f(elemAtkMult)} × ${f(fendouMult)} × ${f(steelMult)} = <b>${f(elemBase, 3)}</b></div>
+    <div style="font-size:0.9em; color:#777;">属贯自带 × 属性攻击5 × 奋斗 × 钢壳</div>
+
+    <div style="margin-top:8px;">属性值合计 = ${f(elemBase, 3)} + ${f(elemAtkFlat)} + ${f(chainFlat)} + ${f(fumoFlat)} + ${f(dragonFlat)} = <b>${f(elemTotal, 3)}</b></div>
+    <div style="font-size:0.9em; color:#777;">自带 + 属性攻击5加点 + 连击2 + 伏魔2 + 龙转</div>
+
+    <div style="margin-top:8px;">属性伤害 = (${f(elemTotal, 3)} ÷ 100) × ${f(painMult)} × ${f(weakMult)} × ${f(elemCritMult)} × ${f(elemAbsorb)} × ${f(physPanel)} = <b style="color:#ffcc66;">${f(elemDmg)}</b></div>
+    <div style="font-size:0.9em; color:#777;">(属性值÷100) × 属痛 × 属弱 × 属会 × 属性吸收 × 物理面板</div>
+
+    <div style="color:#88ccff; margin:12px 0 6px;">最终伤害</div>
+    <div>${f(physDmg)} + ${f(elemDmg)} = <b style="color:#ffcc66; font-size:1.15em;">${f(total)}</b></div>
+  `;
+  document.getElementById('formulaBox').innerHTML = formulaHTML;
+}
+
+// 绑定所有输入框
+document.querySelectorAll('input').forEach(el => {
+  el.addEventListener('input', calc);
+});
+
+calc();
+</script>
+
+</body>
+</html>
