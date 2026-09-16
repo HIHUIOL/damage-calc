@@ -29,6 +29,12 @@
     color: #88ccff;
     font-weight: 600;
   }
+  .hint {
+    font-size: 0.78em;
+    color: #888;
+    margin-bottom: 10px;
+    line-height: 1.6;
+  }
   .row {
     display: flex;
     align-items: center;
@@ -37,8 +43,8 @@
     gap: 8px;
   }
   .row label { flex: 1; font-size: 0.9em; color: #bbb; }
-  .row input {
-    width: 90px;
+  .row input, .row select {
+    width: 130px;
     padding: 6px 8px;
     border-radius: 6px;
     border: 1px solid #444;
@@ -47,14 +53,21 @@
     font-size: 0.9em;
     text-align: right;
   }
-  .row input:focus { outline: none; border-color: #ffcc66; }
-  .row input[readonly] {
-    background: #1a1a1a;
-    color: #777;
-    border-color: #333;
-    cursor: not-allowed;
+  .row select { text-align: left; }
+  .row input:focus, .row select:focus { outline: none; border-color: #ffcc66; }
+
+  .resist-summary {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #333;
+    font-size: 0.85em;
   }
-  .result {
+  .resist-summary .item { color: #999; }
+  .resist-summary .item b { color: #ffcc66; }
+
+  .result-main {
     background: #2a2a1a;
     border: 1px solid #ffcc66;
     border-radius: 10px;
@@ -62,16 +75,31 @@
     text-align: center;
     margin-top: 16px;
   }
-  .result .big {
+  .result-main .label { font-size: 0.85em; color: #999; }
+  .result-main .big {
     font-size: 2.2em;
     font-weight: 700;
     color: #ffcc66;
+    margin: 4px 0;
   }
-  .result .sub {
-    font-size: 0.85em;
-    color: #999;
-    margin-top: 8px;
+  .result-sub {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
   }
+  .result-sub .box {
+    flex: 1;
+    background: #262626;
+    border-radius: 8px;
+    padding: 10px 6px;
+    text-align: center;
+  }
+  .result-sub .box .label { font-size: 0.75em; color: #888; }
+  .result-sub .box .val { font-size: 1.1em; font-weight: 600; margin-top: 4px; }
+  .box.normal .val { color: #88ccff; }
+  .box.crit .val { color: #ffaa66; }
+  .box.neg .val { color: #ff6666; }
+
   .btn-row {
     display: flex;
     gap: 8px;
@@ -111,43 +139,86 @@
 
 <h1>属贯伤害计算器</h1>
 
+<!-- ==================== 物理部分 ==================== -->
 <div class="card">
   <h2>物理部分</h2>
   <div class="row"><label>物理面板</label><input id="physPanel" type="number" value="736"></div>
-  <div class="row"><label>会心伤害倍率</label><input id="critMult" type="number" step="0.01" value="1.3"></div>
-  <div class="row"><label>动作值（%）</label><input id="motion" type="number" step="0.1" value="10"></div>
+  <div class="row"><label>超会心</label><select id="skill_超会心"></select></div>
   <div class="row"><label>物理吸收（1=100%）</label><input id="physAbsorb" type="number" step="0.01" value="1"></div>
+  <div class="row"><label>会心率（%，-100~100）</label><input id="critRate" type="number" step="1" value="100" min="-100" max="100"></div>
 </div>
 
+<!-- ==================== 属性基础 ==================== -->
 <div class="card">
   <h2>属性基础</h2>
-  <div class="row"><label>属贯自带属性</label><input id="baseElem" type="number" value="22"></div>
-  <div class="row"><label>属性攻击5 倍率</label><input id="elemAtkMult" type="number" step="0.01" value="1.2"></div>
-  <div class="row"><label>奋斗 倍率</label><input id="fendouMult" type="number" step="0.01" value="1.2"></div>
-  <div class="row"><label>钢壳 倍率</label><input id="steelMult" type="number" step="0.01" value="1.1"></div>
+  <div class="row"><label>属性攻击力强化</label><select id="skill_属性攻击力强化"></select></div>
+  <div class="row"><label>奋斗</label><select id="skill_奋斗"></select></div>
+  <div class="row"><label>钢壳/炎鳞</label><select id="skill_钢壳炎鳞"></select></div>
 </div>
 
+<!-- ==================== 属性固定加点 ==================== -->
 <div class="card">
   <h2>属性固定加点</h2>
-  <div class="row"><label>属性攻击5 加点</label><input id="elemAtkFlat" type="number" value="4"></div>
-  <div class="row"><label>连击2</label><input id="chainFlat" type="number" value="7"></div>
-  <div class="row"><label>伏魔2（3虫）</label><input id="fumoFlat" type="number" value="15"></div>
-  <div class="row"><label>总耐性（5项耐性+激昂）</label><input id="totalResist" type="number" value="134"></div>
-  <div class="row"><label>龙转除数</label><input id="dragonDivisor" type="number" value="12.5" readonly></div>
+  <div class="hint">
+    连击提示：连击数 ≥5 才触发最大效果，2 秒内没增加连击数效果就会消失。<br>
+    连击会加面板攻击力，请在触发最大效果时的 2 秒内，看状态里的攻击力面板，把这个面板填到上面的「物理面板」里。
+  </div>
+  <div class="row"><label>连击</label><select id="skill_连击"></select></div>
+  <div class="row"><label>伏魔耗命</label><select id="skill_伏魔耗命"></select></div>
 </div>
 
+<!-- ==================== 耐性相关 ==================== -->
+<div class="card">
+  <h2>耐性相关</h2>
+  <div class="hint">
+    提示：到修炼场切到蓝书，输入「显示」的耐性。<br>
+    每项耐性上限 50，可填负数。
+  </div>
+  <div class="row"><label>火耐性</label><input id="resFire" type="number" step="1" value="0"></div>
+  <div class="row"><label>水耐性</label><input id="resWater" type="number" step="1" value="20"></div>
+  <div class="row"><label>雷耐性</label><input id="resThunder" type="number" step="1" value="7"></div>
+  <div class="row"><label>冰耐性</label><input id="resIce" type="number" step="1" value="17"></div>
+  <div class="row"><label>龙耐性</label><input id="resDragon" type="number" step="1" value="-10"></div>
+
+  <div class="row"><label>业铠</label><select id="skill_业铠"></select></div>
+  <div class="row"><label>激昂</label><select id="skill_激昂"></select></div>
+  <div class="row"><label>龙气转换</label><select id="skill_龙气转换"></select></div>
+
+  <div class="resist-summary">
+    <div class="item">真实总耐性：<b id="totalResistDisplay">--</b></div>
+    <div class="item">龙转属性值：<b id="dragonFlatDisplay">--</b></div>
+  </div>
+</div>
+
+<!-- ==================== 属性乘区 ==================== -->
 <div class="card">
   <h2>属性乘区</h2>
-  <div class="row"><label>属痛 倍率</label><input id="painMult" type="number" step="0.01" value="1.15"></div>
-  <div class="row"><label>属弱 倍率</label><input id="weakMult" type="number" step="0.01" value="1.15"></div>
-  <div class="row"><label>属会 倍率</label><input id="elemCritMult" type="number" step="0.01" value="1.15"></div>
-  <div class="row"><label>笛子属性攻击力提升</label><input id="hornMult" type="number" step="0.01" value="1.0"></div>
+  <div class="row"><label>属痛龙珠</label><select id="skill_属痛龙珠"></select></div>
+  <div class="row"><label>弱点特效【属性】</label><select id="skill_弱点特效属性"></select></div>
+  <div class="row"><label>会心击【属性】</label><select id="skill_会心击属性"></select></div>
+  <div class="row"><label>笛子属性攻击力提升</label><select id="skill_笛子属性攻击力提升"></select></div>
   <div class="row"><label>属性吸收（0.3=30%）</label><input id="elemAbsorb" type="number" step="0.01" value="0.3"></div>
 </div>
 
-<div class="result">
-  <div class="big" id="totalDmg">--</div>
-  <div class="sub">最终伤害</div>
+<!-- ==================== 结果 ==================== -->
+<div class="result-main">
+  <div class="label">期望伤害</div>
+  <div class="big" id="expectedDmg">--</div>
+</div>
+
+<div class="result-sub">
+  <div class="box normal">
+    <div class="label">非会心</div>
+    <div class="val" id="normalDmg">--</div>
+  </div>
+  <div class="box crit">
+    <div class="label">会心</div>
+    <div class="val" id="critDmg">--</div>
+  </div>
+  <div class="box neg">
+    <div class="label">负会心</div>
+    <div class="val" id="negDmg">--</div>
+  </div>
 </div>
 
 <div class="btn-row">
@@ -156,6 +227,7 @@
   <button id="btnReset" class="danger">重置</button>
 </div>
 
+<!-- ==================== 计算公式 ==================== -->
 <div class="card" style="margin-top:12px;">
   <h2>计算公式</h2>
   <div id="formulaBox" style="font-size:0.82em; color:#aaa; line-height:1.8; word-break:break-all;"></div>
@@ -163,43 +235,99 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="skills.js"></script>
+
 <script>
-// ===== 默认值（重置时用这个） =====
+// ============================================================
+// 固定值
+// ============================================================
+const FIXED = {
+  baseElem: 22,   // 属贯自带属性
+  motion: 10      // 动作值（%）
+};
+
+const NEG_CRIT_PHYS = 0.75;  // 负会心物理倍率
+
+// ============================================================
+// 默认值
+// ============================================================
 const DEFAULTS = {
   physPanel: 736,
-  critMult: 1.3,
-  motion: 10,
   physAbsorb: 1,
-  baseElem: 22,
-  elemAtkMult: 1.2,
-  fendouMult: 1.2,
-  steelMult: 1.1,
-  elemAtkFlat: 4,
-  chainFlat: 7,
-  fumoFlat: 15,
-  totalResist: 134,
-  painMult: 1.15,
-  weakMult: 1.15,
-  elemCritMult: 1.15,
-  hornMult: 1.0,
-  elemAbsorb: 0.3
+  critRate: 100,
+  elemAbsorb: 0.3,
+  resFire: 0,
+  resWater: 20,
+  resThunder: 7,
+  resIce: 17,
+  resDragon: -10,
+  skill_超会心: '1',
+  skill_属性攻击力强化: '5',
+  skill_奋斗: '3b',
+  skill_钢壳炎鳞: '2',
+  skill_连击: '2',
+  skill_伏魔耗命: '2-3',
+  skill_业铠: '0',
+  skill_激昂: '3',
+  skill_龙气转换: '3',
+  skill_属痛龙珠: '1',
+  skill_弱点特效属性: '3',
+  skill_会心击属性: '3',
+  skill_笛子属性攻击力提升: '0'
 };
 
 const STORAGE_KEY = 'damageCalcData';
 
+// ============================================================
+// 工具函数
+// ============================================================
+function getSkillOption(skillName, key) {
+  const skill = SKILLS[skillName];
+  if (!skill) return null;
+  return skill.options.find(o => o.key === key) || skill.options[0];
+}
+
+function initSelects() {
+  Object.keys(SKILLS).forEach(skillName => {
+    const el = document.getElementById('skill_' + skillName);
+    if (!el) return;
+    const skill = SKILLS[skillName];
+    el.innerHTML = '';
+    skill.options.forEach(opt => {
+      const option = document.createElement('option');
+      option.value = opt.key;
+      option.textContent = opt.text;
+      el.appendChild(option);
+    });
+  });
+}
+
 function getData() {
   const data = {};
-  Object.keys(DEFAULTS).forEach(id => {
+  const ids = ['physPanel', 'physAbsorb', 'critRate', 'elemAbsorb',
+               'resFire', 'resWater', 'resThunder', 'resIce', 'resDragon'];
+  ids.forEach(id => {
     const el = document.getElementById(id);
-    data[id] = el ? +el.value : DEFAULTS[id];
+    if (el) data[id] = +el.value;
+  });
+  Object.keys(SKILLS).forEach(skillName => {
+    const el = document.getElementById('skill_' + skillName);
+    if (el) data['skill_' + skillName] = el.value;
   });
   return data;
 }
 
 function applyData(data) {
-  Object.keys(DEFAULTS).forEach(id => {
+  const ids = ['physPanel', 'physAbsorb', 'critRate', 'elemAbsorb',
+               'resFire', 'resWater', 'resThunder', 'resIce', 'resDragon'];
+  ids.forEach(id => {
     const el = document.getElementById(id);
     if (el && data[id] !== undefined) el.value = data[id];
+  });
+  Object.keys(SKILLS).forEach(skillName => {
+    const el = document.getElementById('skill_' + skillName);
+    const key = data['skill_' + skillName];
+    if (el && key !== undefined) el.value = key;
   });
   calc();
 }
@@ -225,66 +353,187 @@ function showToast(msg) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 1500);
 }
 
-function calc() {
+// ============================================================
+// 计算真实耐性
+// ============================================================
+function calcResist() {
+  const resFire = +document.getElementById('resFire').value || 0;
+  const resWater = +document.getElementById('resWater').value || 0;
+  const resThunder = +document.getElementById('resThunder').value || 0;
+  const resIce = +document.getElementById('resIce').value || 0;
+  const resDragon = +document.getElementById('resDragon').value || 0;
+
+  const opt业铠 = getSkillOption('业铠', document.getElementById('skill_业铠').value);
+  const opt激昂 = getSkillOption('激昂', document.getElementById('skill_激昂').value);
+  const opt龙气 = getSkillOption('龙气转换', document.getElementById('skill_龙气转换').value);
+
+  const bonus = opt业铠.value + opt激昂.value;
+
+  const cap = v => Math.min(v, 50);
+  const f = cap(resFire + bonus);
+  const w = cap(resWater + bonus);
+  const t = cap(resThunder + bonus);
+  const i = cap(resIce + bonus);
+  const d = cap(resDragon + bonus);
+
+  const total = f + w + t + i + d;
+
+  let dragonFlat = 0;
+  if (opt龙气.key === '3') {
+    dragonFlat = total / opt龙气.value;
+  }
+
+  return { total, dragonFlat, opt龙气, f, w, t, i, d, bonus };
+}
+
+// ============================================================
+// 单次伤害计算
+// ============================================================
+function calcOne(mode) {
   const physPanel = +document.getElementById('physPanel').value || 0;
-  const critMult = +document.getElementById('critMult').value || 0;
-  const motion = +document.getElementById('motion').value || 0;
   const physAbsorb = +document.getElementById('physAbsorb').value || 0;
-  const physDmg = physPanel * critMult * (motion / 100) * physAbsorb;
-
-  const baseElem = +document.getElementById('baseElem').value || 0;
-  const elemAtkMult = +document.getElementById('elemAtkMult').value || 1;
-  const fendouMult = +document.getElementById('fendouMult').value || 1;
-  const steelMult = +document.getElementById('steelMult').value || 1;
-
-  const elemAtkFlat = +document.getElementById('elemAtkFlat').value || 0;
-  const chainFlat = +document.getElementById('chainFlat').value || 0;
-  const fumoFlat = +document.getElementById('fumoFlat').value || 0;
-  const totalResist = +document.getElementById('totalResist').value || 0;
-  const dragonDivisor = +document.getElementById('dragonDivisor').value || 1;
-  const dragonFlat = totalResist / dragonDivisor;
-
-  const painMult = +document.getElementById('painMult').value || 1;
-  const weakMult = +document.getElementById('weakMult').value || 1;
-  const elemCritMult = +document.getElementById('elemCritMult').value || 1;
-  const hornMult = +document.getElementById('hornMult').value || 1;
   const elemAbsorb = +document.getElementById('elemAbsorb').value || 0;
 
-  const elemBase = baseElem * elemAtkMult * fendouMult * steelMult;
+  const opt超会心 = getSkillOption('超会心', document.getElementById('skill_超会心').value);
+  const opt属攻 = getSkillOption('属性攻击力强化', document.getElementById('skill_属性攻击力强化').value);
+  const opt奋斗 = getSkillOption('奋斗', document.getElementById('skill_奋斗').value);
+  const opt钢壳 = getSkillOption('钢壳炎鳞', document.getElementById('skill_钢壳炎鳞').value);
+  const opt连击 = getSkillOption('连击', document.getElementById('skill_连击').value);
+  const opt伏魔 = getSkillOption('伏魔耗命', document.getElementById('skill_伏魔耗命').value);
+  const opt属痛 = getSkillOption('属痛龙珠', document.getElementById('skill_属痛龙珠').value);
+  const opt弱特 = getSkillOption('弱点特效属性', document.getElementById('skill_弱点特效属性').value);
+  const opt属会 = getSkillOption('会心击属性', document.getElementById('skill_会心击属性').value);
+  const opt笛子 = getSkillOption('笛子属性攻击力提升', document.getElementById('skill_笛子属性攻击力提升').value);
+
+  const resist = calcResist();
+  const dragonFlat = resist.dragonFlat;
+
+  let 超会心倍率 = 1.0;
+  let 属会倍率 = 1.0;
+
+  if (mode === 'normal') {
+    超会心倍率 = 1.0;
+    属会倍率 = 1.0;
+  } else if (mode === 'crit') {
+    超会心倍率 = opt超会心.value;
+    属会倍率 = opt属会.value;
+  } else if (mode === 'neg') {
+    超会心倍率 = NEG_CRIT_PHYS;
+    属会倍率 = 1.0;
+  }
+
+  const physDmg = physPanel * 超会心倍率 * (FIXED.motion / 100) * physAbsorb;
+
+  const elemBase = FIXED.baseElem * opt属攻.value * opt奋斗.value * opt钢壳.value;
+
+  const elemAtkFlat = opt属攻.flat || 0;
+  const chainFlat = opt连击.value || 0;
+  const fumoFlat = opt伏魔.value || 0;
+
   const elemTotal = elemBase + elemAtkFlat + chainFlat + fumoFlat + dragonFlat;
+
+  let 属痛倍率 = opt属痛.value;
+  if (opt属痛.key === '1' && elemAbsorb * 100 < 25) 属痛倍率 = 1.0;
+
+  let 弱特倍率 = opt弱特.value;
+  if (opt弱特.key !== '0' && elemAbsorb * 100 < 20) 弱特倍率 = 1.0;
+
+  const 笛子倍率 = opt笛子.value;
+
   const elemPercent = elemTotal / 100;
-  const elemDmg = elemPercent * painMult * weakMult * elemCritMult * hornMult * elemAbsorb * physPanel;
+  const elemDmg = elemPercent * 属痛倍率 * 弱特倍率 * 属会倍率 * 笛子倍率 * elemAbsorb * physPanel;
 
   const total = physDmg + elemDmg;
-  document.getElementById('totalDmg').textContent = total.toFixed(2);
+
+  return {
+    physDmg, elemDmg, total,
+    physPanel, physAbsorb,
+    opt超会心, opt属攻, opt奋斗, opt钢壳, opt连击, opt伏魔,
+    opt属痛, opt弱特, opt属会, opt笛子,
+    超会心倍率, 属会倍率,
+    elemBase, elemAtkFlat, chainFlat, fumoFlat, dragonFlat, elemTotal,
+    属痛倍率, 弱特倍率, 笛子倍率,
+    elemAbsorb, resist,
+    mode
+  };
+}
+
+// ============================================================
+// 主计算
+// ============================================================
+function calc() {
+  let critRateRaw = +document.getElementById('critRate').value || 0;
+  critRateRaw = Math.max(-100, Math.min(100, critRateRaw));
+  document.getElementById('critRate').value = critRateRaw;
+
+  const critRate = critRateRaw / 100;
+
+  const normal = calcOne('normal');
+  const crit = calcOne('crit');
+  const neg = calcOne('neg');
+
+  let expected;
+  if (critRate >= 0) {
+    expected = normal.total * (1 - critRate) + crit.total * critRate;
+  } else {
+    const absRate = Math.abs(critRate);
+    expected = normal.total * (1 - absRate) + neg.total * absRate;
+  }
+
+  document.getElementById('expectedDmg').textContent = expected.toFixed(2);
+  document.getElementById('normalDmg').textContent = normal.total.toFixed(2);
+  document.getElementById('critDmg').textContent = crit.total.toFixed(2);
+  document.getElementById('negDmg').textContent = neg.total.toFixed(2);
+
+  const r = normal.resist;
+  document.getElementById('totalResistDisplay').textContent = r.total;
+  document.getElementById('dragonFlatDisplay').textContent = r.dragonFlat.toFixed(3);
 
   const f = (n, d = 2) => Number(n).toFixed(d);
+  const m = normal;
+  const r2 = m.resist;
+
   document.getElementById('formulaBox').innerHTML = `
-    <div style="color:#88ccff; margin-bottom:6px;">物理部分</div>
-    <div>${f(physPanel)} × ${f(critMult)} × ${f(motion / 100, 4)} × ${f(physAbsorb)} = <b style="color:#ffcc66;">${f(physDmg)}</b></div>
-    <div style="font-size:0.9em; color:#777;">物理面板 × 会心倍率 × 动作值 × 物理吸收</div>
+    <div style="color:#88ccff; margin-bottom:6px;">耐性部分</div>
+    <div>业铠 + 激昂 每项加成 = ${f(m.resist.bonus)}</div>
+    <div>真实耐性（封顶50）：火 ${r2.f} / 水 ${r2.w} / 雷 ${r2.t} / 冰 ${r2.i} / 龙 ${r2.d}</div>
+    <div>真实总耐性 = ${r2.f} + ${r2.w} + ${r2.t} + ${r2.i} + ${r2.d} = <b>${r2.total}</b></div>
+    <div>龙转 = ${r2.total} ÷ ${f(m.resist.opt龙气.value)} = <b>${f(r2.dragonFlat, 3)}</b></div>
 
-    <div style="color:#88ccff; margin:12px 0 6px;">属性部分</div>
-    <div>自带属性 = ${f(baseElem)} × ${f(elemAtkMult)} × ${f(fendouMult)} × ${f(steelMult)} = <b>${f(elemBase, 3)}</b></div>
-    <div style="font-size:0.9em; color:#777;">属贯自带 × 属性攻击5 × 奋斗 × 钢壳</div>
+    <div style="color:#88ccff; margin:12px 0 6px;">物理部分</div>
+    <div>非会心：${f(m.physPanel)} × 1 × ${f(FIXED.motion / 100, 4)} × ${f(m.physAbsorb)} = <b>${f(normal.physDmg)}</b></div>
+    <div>会　心：${f(m.physPanel)} × ${f(crit.超会心倍率)} × ${f(FIXED.motion / 100, 4)} × ${f(m.physAbsorb)} = <b>${f(crit.physDmg)}</b></div>
+    <div>负会心：${f(m.physPanel)} × ${f(NEG_CRIT_PHYS)} × ${f(FIXED.motion / 100, 4)} × ${f(m.physAbsorb)} = <b>${f(neg.physDmg)}</b></div>
 
-    <div style="margin-top:8px;">龙转 = ${f(totalResist)} ÷ ${f(dragonDivisor)} = <b>${f(dragonFlat, 3)}</b></div>
-    <div style="font-size:0.9em; color:#777;">总耐性 ÷ 龙转除数</div>
+    <div style="color:#88ccff; margin:12px 0 6px;">属性基础</div>
+    <div>自带属性 = ${f(FIXED.baseElem)} × ${f(m.opt属攻.value)} × ${f(m.opt奋斗.value)} × ${f(m.opt钢壳.value)} = <b>${f(m.elemBase, 3)}</b></div>
+    <div>属性值合计 = ${f(m.elemBase, 3)} + ${f(m.elemAtkFlat)} + ${f(m.chainFlat)} + ${f(m.fumoFlat)} + ${f(m.dragonFlat, 3)} = <b>${f(m.elemTotal, 3)}</b></div>
 
-    <div style="margin-top:8px;">属性值合计 = ${f(elemBase, 3)} + ${f(elemAtkFlat)} + ${f(chainFlat)} + ${f(fumoFlat)} + ${f(dragonFlat, 3)} = <b>${f(elemTotal, 3)}</b></div>
-    <div style="font-size:0.9em; color:#777;">自带 + 属性攻击5加点 + 连击2 + 伏魔2 + 龙转</div>
-
-    <div style="margin-top:8px;">属性伤害 = (${f(elemTotal, 3)} ÷ 100) × ${f(painMult)} × ${f(weakMult)} × ${f(elemCritMult)} × ${f(hornMult)} × ${f(elemAbsorb)} × ${f(physPanel)} = <b style="color:#ffcc66;">${f(elemDmg)}</b></div>
-    <div style="font-size:0.9em; color:#777;">(属性值÷100) × 属痛 × 属弱 × 属会 × 笛子 × 属性吸收 × 物理面板</div>
+    <div style="color:#88ccff; margin:12px 0 6px;">属性伤害</div>
+    <div>非会心：(${f(m.elemTotal, 3)} ÷ 100) × ${f(m.属痛倍率)} × ${f(m.弱特倍率)} × 1 × ${f(m.笛子倍率)} × ${f(m.elemAbsorb)} × ${f(m.physPanel)} = <b>${f(normal.elemDmg)}</b></div>
+    <div>会　心：(${f(m.elemTotal, 3)} ÷ 100) × ${f(m.属痛倍率)} × ${f(m.弱特倍率)} × ${f(crit.属会倍率)} × ${f(m.笛子倍率)} × ${f(m.elemAbsorb)} × ${f(m.physPanel)} = <b>${f(crit.elemDmg)}</b></div>
+    <div>负会心：(${f(m.elemTotal, 3)} ÷ 100) × ${f(m.属痛倍率)} × ${f(m.弱特倍率)} × 1 × ${f(m.笛子倍率)} × ${f(m.elemAbsorb)} × ${f(m.physPanel)} = <b>${f(neg.elemDmg)}</b></div>
 
     <div style="color:#88ccff; margin:12px 0 6px;">最终伤害</div>
-    <div>${f(physDmg)} + ${f(elemDmg)} = <b style="color:#ffcc66; font-size:1.15em;">${f(total)}</b></div>
+    <div>非会心：${f(normal.physDmg)} + ${f(normal.elemDmg)} = <b style="color:#88ccff;">${f(normal.total)}</b></div>
+    <div>会　心：${f(crit.physDmg)} + ${f(crit.elemDmg)} = <b style="color:#ffaa66;">${f(crit.total)}</b></div>
+    <div>负会心：${f(neg.physDmg)} + ${f(neg.elemDmg)} = <b style="color:#ff6666;">${f(neg.total)}</b></div>
+
+    <div style="color:#88ccff; margin:12px 0 6px;">期望伤害</div>
+    <div>会心率：${f(critRateRaw)}%</div>
+    ${critRate >= 0
+      ? `<div>${f(normal.total)} × ${f(1 - critRate, 4)} + ${f(crit.total)} × ${f(critRate, 4)} = <b style="color:#ffcc66; font-size:1.15em;">${f(expected)}</b></div>`
+      : `<div>${f(normal.total)} × ${f(1 - Math.abs(critRate), 4)} + ${f(neg.total)} × ${f(Math.abs(critRate), 4)} = <b style="color:#ffcc66; font-size:1.15em;">${f(expected)}</b></div>`
+    }
   `;
 }
 
-// 输入框只触发计算，不自动保存
-document.querySelectorAll('input').forEach(el => {
+// ============================================================
+// 事件绑定
+// ============================================================
+document.querySelectorAll('input, select').forEach(el => {
   el.addEventListener('input', calc);
+  el.addEventListener('change', calc);
 });
 
 document.getElementById('btnSave').addEventListener('click', () => {
@@ -309,11 +558,13 @@ document.getElementById('btnReset').addEventListener('click', () => {
   }
 });
 
-// 初始化：自动读取存档，没有就用默认值
+// ============================================================
+// 初始化
+// ============================================================
+initSelects();
 const saved = loadData();
 applyData(saved || DEFAULTS);
 
-// 注册 Service Worker
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js');
 }
