@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>属贯伤害计算器</title>
 <link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#1a1a1a">
 <style>
   * { box-sizing: border-box; }
@@ -115,11 +116,13 @@
 
   .btn-row {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
     margin-top: 12px;
   }
   .btn-row button {
     flex: 1;
+    min-width: 72px;
     padding: 10px;
     border-radius: 8px;
     border: 1px solid #444;
@@ -302,6 +305,7 @@
   <button id="btnSave">保存</button>
   <button id="btnLoad">读取</button>
   <button id="btnReset" class="danger">重置</button>
+  <button id="btnRefresh" class="danger">刷新更新</button>
 </div>
 
 <div class="card" style="margin-top:12px;">
@@ -961,8 +965,52 @@ initArmor();
 const saved = loadData();
 applyData(saved || DEFAULTS);
 
+// ---------- 刷新更新 ----------
+// 注销 Service Worker + 清空所有缓存 + 强制重新加载，拿到最新版本
+async function hardRefresh() {
+  try {
+    // 1. 注销所有 Service Worker
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(reg => reg.unregister()));
+    }
+    // 2. 清空所有 Cache Storage
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+  } catch (e) {
+    // 忽略错误，仍然尝试重载
+  }
+  // 3. 强制从服务器重新加载（绕过缓存）
+  location.reload();
+}
+
+document.getElementById('btnRefresh').addEventListener('click', () => {
+  if (confirm('刷新更新会清空本地缓存并重新加载最新版本，你保存的存档不会丢失。继续吗？')) {
+    showToast('正在刷新更新…');
+    setTimeout(hardRefresh, 300);
+  }
+});
+
+// 注册 Service Worker，并检测到有新版本时自动更新
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      // 检查是否有更新
+      reg.update().catch(() => {});
+      // 发现有等待中的新版本时，提示并可自动激活
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener('statechange', () => {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+            showToast('检测到新版本，已就绪（可点「刷新更新」应用）');
+          }
+        });
+      });
+    }).catch(() => {});
+  });
 }
 </script>
 
