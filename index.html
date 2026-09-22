@@ -29,6 +29,19 @@
     color: #88ccff;
     font-weight: 600;
   }
+  .subgroup {
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 10px 10px 4px;
+    margin-bottom: 10px;
+    background: #2b2b2b;
+  }
+  .subgroup-title {
+    font-size: 0.82em;
+    color: #ffcc66;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
   .hint {
     font-size: 0.78em;
     color: #888;
@@ -141,10 +154,58 @@
 
 <div class="card">
   <h2>物理部分</h2>
-  <div class="row"><label>物理面板</label><input id="physPanel" type="number" value="736"></div>
-  <div class="row"><label>超会心</label><select id="skill_超会心"></select></div>
-  <div class="row"><label>物理吸收（1=100%）</label><input id="physAbsorb" type="number" step="0.01" value="1"></div>
-  <div class="row"><label>会心率（%，-100~100）</label><input id="critRate" type="number" step="1" value="100" min="-100" max="100"></div>
+
+  <div class="subgroup">
+    <div class="subgroup-title">物理基础</div>
+    <div class="row"><label>选择武器</label><select id="weaponSelect"></select></div>
+    <div class="row"><label>武器基础面板</label><input id="weaponPanel" type="number" value="736"></div>
+    <div class="row"><label>怪异强化攻击力</label><input id="qiguaiPanel" type="number" value="0"></div>
+    <div class="row"><label>武器自带会心（%）</label><input id="weaponCrit" type="number" step="1" value="0"></div>
+    <div class="row"><label>强力枪管</label><select id="skill_强力枪管"></select></div>
+    <div class="row"><label>零件改造</label><select id="skill_零件改造"></select></div>
+    <div class="row"><label>花链</label><select id="skill_花链"></select></div>
+  </div>
+
+  <div class="subgroup">
+    <div class="subgroup-title">物理技能</div>
+    <div class="row"><label>攻击</label><select id="skill_攻击"></select></div>
+    <div class="row"><label>火场怪力</label><select id="skill_火场怪力"></select></div>
+    <div class="row"><label>强化太鼓之技</label><select id="skill_强化太鼓之技"></select></div>
+    <div class="row"><label>激励</label><select id="skill_激励"></select></div>
+    <div class="row"><label>怨恨</label><select id="skill_怨恨"></select></div>
+    <div class="row"><label>业铠【修罗】</label><select id="skill_业铠修罗"></select></div>
+    <div class="row"><label>其他技能攻击力（直接填值）</label><input id="otherSkillAtk" type="number" step="1" value="0"></div>
+  </div>
+
+  <div class="subgroup">
+    <div class="subgroup-title">会心相关技能</div>
+    <div class="row"><label>攻击猫·强化咆哮之技</label><select id="skill_攻击猫"></select></div>
+    <div class="row"><label>看破</label><select id="skill_看破"></select></div>
+    <div class="row"><label>精神抖擞</label><select id="skill_精神抖擞"></select></div>
+    <div class="row"><label>超会心</label><select id="skill_超会心"></select></div>
+    <div style="font-size:0.78em; color:#888; margin-top:4px;">
+      会心率由「武器自带会心」+ 攻击猫 + 看破 + 精神抖擞 + 奋斗（会心）+ 笛子「会心率提升」自动叠加，结果显示在下方「汇总」卡片。
+    </div>
+  </div>
+
+  <div class="subgroup">
+    <div class="subgroup-title">笛子旋律（可多选，同时生效）</div>
+    <div id="melodyBox" style="display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-top:6px;"></div>
+    <div style="font-size:0.78em; color:#888; margin-top:4px;">
+      提示：「气炎旋律」与「攻击力提升」只生效一个（同时勾选时取气炎旋律 ×1.20）。
+    </div>
+  </div>
+
+  <div class="subgroup">
+    <div class="subgroup-title">物品（可多选叠加）</div>
+    <div id="itemBox" style="display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-top:6px;">
+      <label style="font-size:0.82em; color:#bbb;"><input type="checkbox" id="item_seed" value="10"> 怪力种子 +10</label>
+      <label style="font-size:0.82em; color:#bbb;"><input type="checkbox" id="item_drug" value="7"> 鬼人药G +7</label>
+      <label style="font-size:0.82em; color:#bbb;"><input type="checkbox" id="item_dust" value="10"> 鬼人粉尘 +10</label>
+      <label style="font-size:0.82em; color:#bbb;"><input type="checkbox" id="item_charm" value="6"> 力量之护符 +6</label>
+      <label style="font-size:0.82em; color:#bbb;"><input type="checkbox" id="item_claw" value="9"> 力量之爪 +9</label>
+    </div>
+  </div>
 </div>
 
 <div class="card">
@@ -156,29 +217,41 @@
 
 <div class="card">
   <h2>属性固定加点</h2>
-  <div class="hint">
-    连击提示：连击数 ≥5 才触发最大效果，2 秒内没增加连击数效果就会消失。<br>
-    连击会加面板攻击力，请在触发最大效果时的 2 秒内，看状态里的攻击力面板，把这个面板填到上面的「物理面板」里。
-  </div>
   <div class="row"><label>连击</label><select id="skill_连击"></select></div>
   <div class="row"><label>伏魔耗命</label><select id="skill_伏魔耗命"></select></div>
   <div class="row"><label>其他（直接填数值）</label><input id="otherFlat" type="number" step="0.01" value="0"></div>
 </div>
 
 <div class="card">
-  <h2>耐性相关</h2>
-  <div class="hint">
-    提示：到修炼场切到蓝书，输入「显示」的耐性。<br>
-    每项耐性上限 50，可填负数。
-  </div>
-  <div class="row"><label>火耐性</label><input id="resFire" type="number" step="1" value="0"></div>
-  <div class="row"><label>水耐性</label><input id="resWater" type="number" step="1" value="20"></div>
-  <div class="row"><label>雷耐性</label><input id="resThunder" type="number" step="1" value="7"></div>
-  <div class="row"><label>冰耐性</label><input id="resIce" type="number" step="1" value="17"></div>
-  <div class="row"><label>龙耐性</label><input id="resDragon" type="number" step="1" value="-10"></div>
+  <h2>属性乘区</h2>
+  <div class="row"><label>属痛龙珠</label><select id="skill_属痛龙珠"></select></div>
+  <div class="row"><label>弱点特效【属性】</label><select id="skill_弱点特效属性"></select></div>
+  <div class="row"><label>会心击【属性】</label><select id="skill_会心击属性"></select></div>
+</div>
 
-  <div class="row"><label>业铠</label><select id="skill_业铠"></select></div>
-  <div class="row"><label>激昂</label><select id="skill_激昂"></select></div>
+<div class="card">
+  <h2>耐性相关</h2>
+
+  <div class="subgroup">
+    <div class="subgroup-title">装备选择（勾选你穿的装备，自动求和填入下方耐性）</div>
+    <div id="armorBox" style="display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-top:6px;"></div>
+    <div style="font-size:0.78em; color:#888; margin-top:6px;">已选 <b id="armorCount">0</b>/5 件</div>
+  </div>
+
+  <div class="row"><label>火耐性</label><input id="resFire" type="number" step="1" value="0"></div>
+  <div class="row"><label>水耐性</label><input id="resWater" type="number" step="1" value="0"></div>
+  <div class="row"><label>雷耐性</label><input id="resThunder" type="number" step="1" value="0"></div>
+  <div class="row"><label>冰耐性</label><input id="resIce" type="number" step="1" value="0"></div>
+  <div class="row"><label>龙耐性</label><input id="resDragon" type="number" step="1" value="0"></div>
+  <div style="font-size:0.78em; color:#888; margin-top:4px;">上方为装备求和结果，可手动微调；每项耐性上限 50。</div>
+
+  <div class="row" style="margin-top:8px;"><label>激昂</label><select id="skill_激昂"></select></div>
+  <div class="row"><label>防御</label><select id="skill_防御"></select></div>
+  <div class="row"><label>火耐性</label><select id="skill_火耐性"></select></div>
+  <div class="row"><label>水耐性</label><select id="skill_水耐性"></select></div>
+  <div class="row"><label>雷耐性</label><select id="skill_雷耐性"></select></div>
+  <div class="row"><label>冰耐性</label><select id="skill_冰耐性"></select></div>
+  <div class="row"><label>龙耐性</label><select id="skill_龙耐性"></select></div>
   <div class="row"><label>龙气转换</label><select id="skill_龙气转换"></select></div>
 
   <div class="resist-summary">
@@ -188,11 +261,20 @@
 </div>
 
 <div class="card">
-  <h2>属性乘区</h2>
-  <div class="row"><label>属痛龙珠</label><select id="skill_属痛龙珠"></select></div>
-  <div class="row"><label>弱点特效【属性】</label><select id="skill_弱点特效属性"></select></div>
-  <div class="row"><label>会心击【属性】</label><select id="skill_会心击属性"></select></div>
-  <div class="row"><label>笛子属性攻击力提升</label><select id="skill_笛子属性攻击力提升"></select></div>
+  <h2>汇总</h2>
+  <div class="row" style="border-bottom:1px solid #333; padding-bottom:10px;">
+    <label style="color:#ffcc66; font-weight:600;">物理面板（自动）</label>
+    <span id="physPanelDisplay" style="color:#ffcc66; font-weight:600; font-size:1.1em;">--</span>
+  </div>
+  <div class="row" style="border-bottom:1px solid #333; padding-bottom:10px;">
+    <label style="color:#ffcc66; font-weight:600;">最终属性值（自动）</label>
+    <span id="elemTotalDisplay" style="color:#ffcc66; font-weight:600; font-size:1.1em;">--</span>
+  </div>
+  <div class="row" style="border-bottom:1px solid #333; padding-bottom:10px;">
+    <label style="color:#ffcc66; font-weight:600;">会心率（自动，%）</label>
+    <span id="critRateDisplay" style="color:#ffcc66; font-weight:600; font-size:1.1em;">--</span>
+  </div>
+  <div class="row"><label>物理吸收（1=100%）</label><input id="physAbsorb" type="number" step="0.01" value="1"></div>
   <div class="row"><label>属性吸收（0.3=30%）</label><input id="elemAbsorb" type="number" step="0.01" value="0.3"></div>
 </div>
 
@@ -230,6 +312,8 @@
 <div class="toast" id="toast"></div>
 
 <script src="skills.js"></script>
+<script src="weapons.js"></script>
+<script src="armor.js"></script>
 
 <script>
 const FIXED = {
@@ -240,29 +324,64 @@ const FIXED = {
 const NEG_CRIT_PHYS = 0.75;
 
 const DEFAULTS = {
-  physPanel: 736,
+  weaponSelect: '凶刻【时雨】',
+  weaponPanel: 370,
+  qiguaiPanel: 40,
+  weaponCrit: -20,
   physAbsorb: 1,
-  critRate: 100,
   elemAbsorb: 0.3,
   otherFlat: 0,
-  resFire: 0,
-  resWater: 20,
-  resThunder: 7,
-  resIce: 17,
-  resDragon: -10,
+  otherSkillAtk: 0,
+  // 以下耐性 = 默认 5 件装备（堕天/脉动/健美/原初/雪崩）之和
+  resFire: -8,
+  resWater: 8,
+  resThunder: -4,
+  resIce: 8,
+  resDragon: -16,
   skill_超会心: '1',
   skill_属性攻击力强化: '5',
   skill_奋斗: '3b',
   skill_钢壳炎鳞: '2',
   skill_连击: '2',
-  skill_伏魔耗命: '2-3',
-  skill_业铠: '0',
+  skill_伏魔耗命: '2-2',
   skill_激昂: '3',
+  skill_防御: '0',
+  skill_火耐性: '0',
+  skill_水耐性: '0',
+  skill_雷耐性: '0',
+  skill_冰耐性: '0',
+  skill_龙耐性: '0',
   skill_龙气转换: '3',
   skill_属痛龙珠: '1',
   skill_弱点特效属性: '3',
   skill_会心击属性: '3',
-  skill_笛子属性攻击力提升: '0'
+  skill_强力枪管: '1',
+  skill_零件改造: '0',
+  skill_攻击: '7',
+  skill_火场怪力: 'hr',
+  skill_强化太鼓之技: '0',
+  skill_花链: 'l4',
+  skill_激励: '0',
+  skill_怨恨: '0',
+  skill_业铠修罗: '0',
+  skill_攻击猫: '0',
+  skill_看破: '2',
+  skill_精神抖擞: '3',
+  melody_atk: false,
+  melody_fire: false,
+  melody_crit: false,
+  melody_elem: false,
+  melody_resist: false,
+  item_seed: false,
+  item_drug: false,
+  item_dust: false,
+  item_charm: true,
+  item_claw: true,
+  armor_堕天头盔: true,
+  armor_脉动钢龙逆鳞: true,
+  armor_健美腕部: true,
+  armor_原初腰甲: true,
+  armor_雪崩护腿: true
 };
 
 const STORAGE_KEY = 'damageCalcData';
@@ -273,8 +392,66 @@ function getSkillOption(skillName, key) {
   return skill.options.find(o => o.key === key) || skill.options[0];
 }
 
+// ---------- 笛子旋律（复选框，可多选） ----------
+const MELODY = SKILLS.笛子旋律;           // { items: [...] }
+const MELODY_IDS = MELODY.items.map(it => 'melody_' + it.key);
+
+// 取某条旋律是否勾选
+function melodyChecked(key) {
+  const el = document.getElementById('melody_' + key);
+  return !!(el && el.checked);
+}
+
+// 生成旋律复选框（在 initSelects 中调用）
+function initMelody() {
+  const box = document.getElementById('melodyBox');
+  if (!box) return;
+  box.innerHTML = '';
+  MELODY.items.forEach(it => {
+    const wrap = document.createElement('label');
+    wrap.style.cssText = 'font-size:0.82em; color:#bbb;';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.id = 'melody_' + it.key;
+    // 直接在创建时绑定事件，确保勾选后立即生效（不依赖外部绑定顺序）
+    cb.addEventListener('input', calc);
+    cb.addEventListener('change', calc);
+    wrap.appendChild(cb);
+    wrap.appendChild(document.createTextNode(' ' + it.label));
+    box.appendChild(wrap);
+  });
+}
+
+// 互斥处理：气炎旋律 与 攻击力提升 只生效一个（同时勾选时保留气炎，取消攻击力提升）
+function resolveMelodyExclusive() {
+  MELODY.items.forEach(it => {
+    if (!it.exclusive) return;
+    if (melodyChecked(it.key) && melodyChecked(it.exclusive)) {
+      const other = document.getElementById('melody_' + it.exclusive);
+      if (other) other.checked = false;
+    }
+  });
+}
+
+// 汇总旋律效果
+function getMelody() {
+  resolveMelodyExclusive();
+  let physMult = 1.0, crit = 0, elemMult = 1.0, resist = 0;
+  const picked = [];
+  MELODY.items.forEach(it => {
+    if (!melodyChecked(it.key)) return;
+    picked.push(it);
+    if (it.kind === 'physMult') physMult *= it.value;
+    else if (it.kind === 'crit') crit += it.value;
+    else if (it.kind === 'elemMult') elemMult *= it.value;
+    else if (it.kind === 'resist') resist += it.value;
+  });
+  return { physMult, crit, elemMult, resist, picked };
+}
+
 function initSelects() {
   Object.keys(SKILLS).forEach(skillName => {
+    if (skillName === '笛子旋律') return;   // 旋律是复选框，单独初始化
     const el = document.getElementById('skill_' + skillName);
     if (!el) return;
     const skill = SKILLS[skillName];
@@ -286,35 +463,145 @@ function initSelects() {
       el.appendChild(option);
     });
   });
+  initMelody();
+}
+
+// 初始化武器下拉框，并在选择时自动填入面板/会心/怪异攻击
+function initWeapons() {
+  const sel = document.getElementById('weaponSelect');
+  if (!sel || typeof WEAPONS === 'undefined') return;
+  sel.innerHTML = '';
+  Object.keys(WEAPONS).forEach(key => {
+    const option = document.createElement('option');
+    option.value = key;
+    option.textContent = WEAPONS[key].label;
+    sel.appendChild(option);
+  });
+  // 选择武器时：填面板 / 会心 / 怪异攻击（选「不选」则不动，保留手填）
+  const applyWeapon = () => {
+    const w = WEAPONS[sel.value];
+    if (!w || w.panel === null) return;
+    document.getElementById('weaponPanel').value = w.panel;
+    document.getElementById('weaponCrit').value = w.crit;
+    if (w.qiguai !== null) document.getElementById('qiguaiPanel').value = w.qiguai;
+    calc();
+  };
+  sel.addEventListener('input', applyWeapon);
+  sel.addEventListener('change', applyWeapon);
+}
+
+const NUM_IDS = ['weaponPanel', 'qiguaiPanel', 'weaponCrit', 'physAbsorb',
+                 'elemAbsorb', 'otherFlat', 'otherSkillAtk',
+                 'resFire', 'resWater', 'resThunder', 'resIce', 'resDragon'];
+const ITEM_IDS = ['item_seed', 'item_drug', 'item_dust', 'item_charm', 'item_claw'];
+const ARMOR_IDS = (typeof ARMOR !== 'undefined')
+  ? Object.keys(ARMOR).map(k => 'armor_' + k)
+  : [];
+
+// 初始化装备勾选列表
+function initArmor() {
+  const box = document.getElementById('armorBox');
+  if (!box || typeof ARMOR === 'undefined') return;
+  box.innerHTML = '';
+  Object.keys(ARMOR).forEach(key => {
+    const a = ARMOR[key];
+    const wrap = document.createElement('label');
+    wrap.style.cssText = 'font-size:0.8em; color:#bbb;';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.id = 'armor_' + key;
+    cb.addEventListener('input', applyArmorResist);
+    cb.addEventListener('change', applyArmorResist);
+    wrap.appendChild(cb);
+    wrap.appendChild(document.createTextNode(' ' + a.label));
+    box.appendChild(wrap);
+  });
+  updateArmorCount();
+}
+
+// 统计已选装备数量
+function updateArmorCount() {
+  let n = 0;
+  ARMOR_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.checked) n++;
+  });
+  const cnt = document.getElementById('armorCount');
+  if (cnt) cnt.textContent = n;
+  return n;
+}
+
+// 把选中装备的 5 项耐性分别求和，填入耐性输入框
+function applyArmorResist() {
+  if (typeof ARMOR === 'undefined') return;
+  let fire = 0, water = 0, thunder = 0, ice = 0, dragon = 0;
+  Object.keys(ARMOR).forEach(key => {
+    const el = document.getElementById('armor_' + key);
+    if (!el || !el.checked) return;
+    const a = ARMOR[key];
+    fire += a.fire; water += a.water; thunder += a.thunder; ice += a.ice; dragon += a.dragon;
+  });
+  document.getElementById('resFire').value = fire;
+  document.getElementById('resWater').value = water;
+  document.getElementById('resThunder').value = thunder;
+  document.getElementById('resIce').value = ice;
+  document.getElementById('resDragon').value = dragon;
+  updateArmorCount();
+  calc();
 }
 
 function getData() {
   const data = {};
-  const ids = ['physPanel', 'physAbsorb', 'critRate', 'elemAbsorb', 'otherFlat',
-               'resFire', 'resWater', 'resThunder', 'resIce', 'resDragon'];
-  ids.forEach(id => {
+  NUM_IDS.forEach(id => {
     const el = document.getElementById(id);
     if (el) data[id] = +el.value;
+  });
+  ITEM_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) data[id] = el.checked;
+  });
+  MELODY_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) data[id] = el.checked;
   });
   Object.keys(SKILLS).forEach(skillName => {
     const el = document.getElementById('skill_' + skillName);
     if (el) data['skill_' + skillName] = el.value;
   });
+  const wSel = document.getElementById('weaponSelect');
+  if (wSel) data.weaponSelect = wSel.value;
+  ARMOR_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) data[id] = el.checked;
+  });
   return data;
 }
 
 function applyData(data) {
-  const ids = ['physPanel', 'physAbsorb', 'critRate', 'elemAbsorb', 'otherFlat',
-               'resFire', 'resWater', 'resThunder', 'resIce', 'resDragon'];
-  ids.forEach(id => {
+  NUM_IDS.forEach(id => {
     const el = document.getElementById(id);
     if (el && data[id] !== undefined) el.value = data[id];
+  });
+  ITEM_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && data[id] !== undefined) el.checked = !!data[id];
+  });
+  MELODY_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.checked = !!data[id];
   });
   Object.keys(SKILLS).forEach(skillName => {
     const el = document.getElementById('skill_' + skillName);
     const key = data['skill_' + skillName];
     if (el && key !== undefined) el.value = key;
   });
+  const wSel = document.getElementById('weaponSelect');
+  if (wSel && data.weaponSelect !== undefined) wSel.value = data.weaponSelect;
+  ARMOR_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && data[id] !== undefined) el.checked = !!data[id];
+  });
+  updateArmorCount();
   calc();
 }
 
@@ -339,6 +626,57 @@ function showToast(msg) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 1500);
 }
 
+// 计算物理最终面板
+// 公式：（（武器基础面板×（强力枪管+零件改造）+怪异强化）×攻击×火场怪力×强化太鼓之技
+//        + 花链 + 物品 + 各技能攻击力）× 笛子旋律
+function calcPhysPanel() {
+  const weaponPanel = +document.getElementById('weaponPanel').value || 0;
+  const qiguaiPanel = +document.getElementById('qiguaiPanel').value || 0;
+  const otherSkillAtk = +document.getElementById('otherSkillAtk').value || 0;
+
+  const opt枪管 = getSkillOption('强力枪管', document.getElementById('skill_强力枪管').value);
+  const opt零件 = getSkillOption('零件改造', document.getElementById('skill_零件改造').value);
+  const opt攻击 = getSkillOption('攻击', document.getElementById('skill_攻击').value);
+  const opt火场 = getSkillOption('火场怪力', document.getElementById('skill_火场怪力').value);
+  const opt太鼓 = getSkillOption('强化太鼓之技', document.getElementById('skill_强化太鼓之技').value);
+  const opt花链 = getSkillOption('花链', document.getElementById('skill_花链').value);
+  const opt激励 = getSkillOption('激励', document.getElementById('skill_激励').value);
+  const opt怨恨 = getSkillOption('怨恨', document.getElementById('skill_怨恨').value);
+  const opt业铠修罗 = getSkillOption('业铠修罗', document.getElementById('skill_业铠修罗').value);
+  const opt连击 = getSkillOption('连击', document.getElementById('skill_连击').value);
+  const melody = getMelody();   // 5 条旋律汇总（互斥已处理）
+
+  // 强力枪管倍率 + 零件改造加成
+  const gunBarrel = opt枪管.value + opt零件.value;
+
+  // 乘区（攻击技能倍率也在这里，其固定加点并入下面的加法区）
+  // 注意：笛子旋律按公式在最后单独乘，这里先不算它
+  const mult = opt攻击.value * opt火场.value * opt太鼓.value;
+
+  // 物品固定加点（可多选叠加）
+  let itemFlat = 0;
+  ITEM_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.checked) itemFlat += +el.value || 0;
+  });
+
+  // 加法区：花链 + 物品 + 激励 + 怨恨 + 业铠【修罗】 + 连击攻击 + 攻击技能固定加点 + 其他技能攻击力
+  const flat = opt花链.value + itemFlat + opt激励.value + opt怨恨.value + opt业铠修罗.value
+             + (opt连击.atk || 0)
+             + (opt攻击.flat || 0) + otherSkillAtk;
+
+  const base = weaponPanel * gunBarrel + qiguaiPanel;
+  // 完整公式：（base × 乘区 + 加法区）× 笛子旋律
+  const physPanel = (base * mult + flat) * melody.physMult;
+
+  return {
+    physPanel, base, gunBarrel, mult, flat, itemFlat,
+    weaponPanel, qiguaiPanel, otherSkillAtk,
+    melody,
+    opt枪管, opt零件, opt攻击, opt火场, opt太鼓, opt花链, opt激励, opt怨恨, opt业铠修罗, opt连击
+  };
+}
+
 function calcResist() {
   const resFire = +document.getElementById('resFire').value || 0;
   const resWater = +document.getElementById('resWater').value || 0;
@@ -346,18 +684,28 @@ function calcResist() {
   const resIce = +document.getElementById('resIce').value || 0;
   const resDragon = +document.getElementById('resDragon').value || 0;
 
-  const opt业铠 = getSkillOption('业铠', document.getElementById('skill_业铠').value);
   const opt激昂 = getSkillOption('激昂', document.getElementById('skill_激昂').value);
+  const opt防御 = getSkillOption('防御', document.getElementById('skill_防御').value);
   const opt龙气 = getSkillOption('龙气转换', document.getElementById('skill_龙气转换').value);
+  const opt火 = getSkillOption('火耐性', document.getElementById('skill_火耐性').value);
+  const opt水 = getSkillOption('水耐性', document.getElementById('skill_水耐性').value);
+  const opt雷 = getSkillOption('雷耐性', document.getElementById('skill_雷耐性').value);
+  const opt冰 = getSkillOption('冰耐性', document.getElementById('skill_冰耐性').value);
+  const opt龙 = getSkillOption('龙耐性', document.getElementById('skill_龙耐性').value);
+  const melody = getMelody();
 
-  const bonus = opt业铠.value + opt激昂.value;
+  // 全耐性加成：激昂 + 防御 + 龙气转换Lv3(+10) + 笛子「全耐性异常状态无效」
+  let bonus = opt激昂.value + opt防御.value;
+  if (opt龙气.key === '3') bonus += 10;
+  if (melody.resist) bonus += melody.resist;
 
+  // 单项耐性技能
   const cap = v => Math.min(v, 50);
-  const f = cap(resFire + bonus);
-  const w = cap(resWater + bonus);
-  const t = cap(resThunder + bonus);
-  const i = cap(resIce + bonus);
-  const d = cap(resDragon + bonus);
+  const f = cap(resFire + bonus + opt火.value);
+  const w = cap(resWater + bonus + opt水.value);
+  const t = cap(resThunder + bonus + opt雷.value);
+  const i = cap(resIce + bonus + opt冰.value);
+  const d = cap(resDragon + bonus + opt龙.value);
 
   const total = f + w + t + i + d;
 
@@ -366,11 +714,15 @@ function calcResist() {
     dragonFlat = total / opt龙气.value;
   }
 
-  return { total, dragonFlat, opt龙气, opt业铠, opt激昂, f, w, t, i, d, bonus };
+  return {
+    total, dragonFlat, opt龙气, opt激昂, opt防御, f, w, t, i, d, bonus,
+    opt火, opt水, opt雷, opt冰, opt龙
+  };
 }
 
 function calcOne(mode) {
-  const physPanel = +document.getElementById('physPanel').value || 0;
+  const phys = calcPhysPanel();
+  const physPanel = phys.physPanel;
   const physAbsorb = +document.getElementById('physAbsorb').value || 0;
   const elemAbsorb = +document.getElementById('elemAbsorb').value || 0;
   const otherFlat = +document.getElementById('otherFlat').value || 0;
@@ -384,10 +736,10 @@ function calcOne(mode) {
   const opt属痛 = getSkillOption('属痛龙珠', document.getElementById('skill_属痛龙珠').value);
   const opt弱特 = getSkillOption('弱点特效属性', document.getElementById('skill_弱点特效属性').value);
   const opt属会 = getSkillOption('会心击属性', document.getElementById('skill_会心击属性').value);
-  const opt笛子 = getSkillOption('笛子属性攻击力提升', document.getElementById('skill_笛子属性攻击力提升').value);
 
   const resist = calcResist();
   const dragonFlat = resist.dragonFlat;
+  const melody = getMelody();
 
   let 超会心倍率 = 1.0;
   let 属会倍率 = 1.0;
@@ -419,7 +771,8 @@ function calcOne(mode) {
   let 弱特倍率 = opt弱特.value;
   if (opt弱特.key !== '0' && elemAbsorb * 100 < 20) 弱特倍率 = 1.0;
 
-  const 笛子倍率 = opt笛子.value;
+  // 笛子属性攻击力提升：仅由笛子旋律「属性攻击力提升」决定（×1.10）
+  const 笛子倍率 = melody.elemMult;
 
   const elemPercent = elemTotal / 100;
   const elemDmg = elemPercent * 属痛倍率 * 弱特倍率 * 属会倍率 * 笛子倍率 * elemAbsorb * physPanel;
@@ -428,9 +781,9 @@ function calcOne(mode) {
 
   return {
     physDmg, elemDmg, total,
-    physPanel, physAbsorb, otherFlat,
+    physPanel, phys, physAbsorb, otherFlat,
     opt超会心, opt属攻, opt奋斗, opt钢壳, opt连击, opt伏魔,
-    opt属痛, opt弱特, opt属会, opt笛子,
+    opt属痛, opt弱特, opt属会,
     超会心倍率, 属会倍率,
     elemBase, elemAtkFlat, chainFlat, fumoFlat, dragonFlat, elemTotal,
     属痛倍率, 弱特倍率, 笛子倍率,
@@ -438,17 +791,44 @@ function calcOne(mode) {
     mode
   };
 }
-
 function calc() {
-  let critRateRaw = +document.getElementById('critRate').value || 0;
+  // 显示用格式化：最多保留 2 位小数，并去掉末尾多余的 0（1.0→1，0.10→0.1，1.50→1.5）
+  // 注意：仅用于显示，计算全程使用原始高精度数值，不受此影响。
+  const fullNum = n => {
+    if (n === null || n === undefined || isNaN(n)) return '--';
+    return String(parseFloat(Number(n).toFixed(2)));
+  };
+
+  // 实际会心率 = 武器自带会心 + 攻击猫 + 看破 + 精神抖擞 + 奋斗（会心）+ 笛子旋律「会心率提升」，无手填
+  const weaponCrit = +document.getElementById('weaponCrit').value || 0;
+  const opt攻击猫 = getSkillOption('攻击猫', document.getElementById('skill_攻击猫').value);
+  const catCrit = opt攻击猫.value || 0;
+  const opt看破 = getSkillOption('看破', document.getElementById('skill_看破').value);
+  const 看破Crit = opt看破.value || 0;
+  const opt精神抖擞 = getSkillOption('精神抖擞', document.getElementById('skill_精神抖擞').value);
+  const 精神抖擞Crit = opt精神抖擞.value || 0;
+  const opt奋斗 = getSkillOption('奋斗', document.getElementById('skill_奋斗').value);
+  const 奋斗Crit = opt奋斗.crit || 0;
+  const fluitCrit = getMelody().crit || 0;
+
+  let critRateRaw = weaponCrit + catCrit + 看破Crit + 精神抖擞Crit + 奋斗Crit + fluitCrit;
   critRateRaw = Math.max(-100, Math.min(100, critRateRaw));
-  document.getElementById('critRate').value = critRateRaw;
 
   const critRate = critRateRaw / 100;
+
+  // 会心率只读显示
+  document.getElementById('critRateDisplay').textContent = fullNum(critRateRaw);
+
+  // 物理面板只读显示
+  const phys = calcPhysPanel();
+  document.getElementById('physPanelDisplay').textContent = fullNum(phys.physPanel);
 
   const normal = calcOne('normal');
   const crit = calcOne('crit');
   const neg = calcOne('neg');
+
+  // 最终属性值只读显示
+  document.getElementById('elemTotalDisplay').textContent = fullNum(normal.elemTotal);
 
   let expected;
   if (critRate >= 0) {
@@ -458,42 +838,56 @@ function calc() {
     expected = normal.total * (1 - absRate) + neg.total * absRate;
   }
 
-  document.getElementById('expectedDmg').textContent = expected.toFixed(2);
-  document.getElementById('normalDmg').textContent = normal.total.toFixed(2);
-  document.getElementById('critDmg').textContent = crit.total.toFixed(2);
-  document.getElementById('negDmg').textContent = neg.total.toFixed(2);
+  document.getElementById('expectedDmg').textContent = fullNum(expected);
+  document.getElementById('normalDmg').textContent = fullNum(normal.total);
+  document.getElementById('critDmg').textContent = fullNum(crit.total);
+  document.getElementById('negDmg').textContent = fullNum(neg.total);
 
   const r = normal.resist;
   document.getElementById('totalResistDisplay').textContent = r.total;
-  document.getElementById('dragonFlatDisplay').textContent = r.dragonFlat.toFixed(3);
+  document.getElementById('dragonFlatDisplay').textContent = fullNum(r.dragonFlat);
 
-  const f = (n, d = 2) => Number(n).toFixed(d);
+  // 公式区数值显示：最多保留 d 位小数（默认 2），并去掉末尾多余的 0
+  const f = (n, d = 2) => {
+    if (n === null || n === undefined || isNaN(n)) return '--';
+    return String(parseFloat(Number(n).toFixed(d)));
+  };
   const m = normal;
   const r2 = m.resist;
 
   document.getElementById('formulaBox').innerHTML = `
     <div style="color:#88ccff; margin-bottom:6px;">一、耐性部分</div>
-    <div style="font-size:0.9em; color:#777;">每项真实耐性 = 蓝书值 + 业铠 + 激昂，封顶 50</div>
-    <div>业铠：${r2.opt业铠.text}（每项 +${r2.opt业铠.value}） ｜ 激昂：${r2.opt激昂.text}（每项 +${r2.opt激昂.value}）</div>
+    <div style="font-size:0.9em; color:#777;">每项真实耐性 = 装备求和值 + 全耐性加成 + 单项耐性技能，封顶 50</div>
+    <div>全耐性加成：激昂 ${r2.opt激昂.text} + 防御 ${r2.opt防御.text}${r2.opt龙气.key === '3' ? ' + 龙气转换+10' : ''} = 每项 +${r2.bonus}</div>
+    <div>单项耐性技能：火 ${r2.opt火.value} / 水 ${r2.opt水.value} / 雷 ${r2.opt雷.value} / 冰 ${r2.opt冰.value} / 龙 ${r2.opt龙.value}</div>
     <div>真实耐性：火 ${r2.f} / 水 ${r2.w} / 雷 ${r2.t} / 冰 ${r2.i} / 龙 ${r2.d}</div>
     <div>真实总耐性 = ${r2.f} + ${r2.w} + ${r2.t} + ${r2.i} + ${r2.d} = <b>${r2.total}</b></div>
     <div>龙气转换：${r2.opt龙气.text}，龙转属性值 = ${r2.total} ÷ ${f(r2.opt龙气.value)} = <b>${f(r2.dragonFlat, 3)}</b></div>
 
-    <div style="color:#88ccff; margin:14px 0 6px;">二、物理部分</div>
+    <div style="color:#88ccff; margin:14px 0 6px;">二、物理面板</div>
+    <div style="font-size:0.9em; color:#777;">（（武器基础面板×（强力枪管+零件改造）+怪异强化）×攻击×火场怪力×强化太鼓之技 + 花链 + 物品 + 各技能攻击力）× 笛子旋律</div>
+    <div>强力枪管倍率 = ${f(m.phys.gunBarrel, 3)}（枪管 ${f(m.phys.opt枪管.value, 3)} + 零件改造 ${f(m.phys.opt零件.value, 3)}）</div>
+    <div>内部底数 = 武器面板 ${f(m.phys.weaponPanel)} × ${f(m.phys.gunBarrel, 3)} + 怪异强化 ${f(m.phys.qiguaiPanel)} = <b>${f(m.phys.base)}</b></div>
+    <div>乘区 = 攻击 ${f(m.phys.opt攻击.value)} × 火场怪力 ${f(m.phys.opt火场.value)} × 强化太鼓之技 ${f(m.phys.opt太鼓.value)} = <b>${f(m.phys.mult, 4)}</b></div>
+    <div>加法区 = 花链 ${f(m.phys.opt花链.value)} + 物品 ${f(m.phys.itemFlat)} + 激励 ${f(m.phys.opt激励.value)} + 怨恨 ${f(m.phys.opt怨恨.value)} + 业铠【修罗】 ${f(m.phys.opt业铠修罗.value)} + 连击攻击 ${f(m.phys.opt连击.atk || 0)} + 攻击技能加点 ${f(m.phys.opt攻击.flat || 0)} + 其他技能攻击力 ${f(m.phys.otherSkillAtk)} = <b>${f(m.phys.flat)}</b></div>
+    <div>笛子旋律 = ${m.phys.melody.picked.length ? m.phys.melody.picked.map(it => `${it.label}（×${f(it.kind === 'crit' || it.kind === 'resist' ? 1 : it.value)}）`).join(' × ') : '未勾选'}（旋律倍率 ${f(m.phys.melody.physMult, 4)}）</div>
+    <div>物理面板 = (${f(m.phys.base)} × ${f(m.phys.mult, 4)} + ${f(m.phys.flat)}) × ${f(m.phys.melody.physMult, 4)} = <b style="color:#ffcc66;">${f(m.phys.physPanel)}</b></div>
+
+    <div style="color:#88ccff; margin:14px 0 6px;">三、物理伤害</div>
     <div style="font-size:0.9em; color:#777;">物理面板 × 超会心 × 动作值 × 物理吸收</div>
     <div>非会心：${f(m.physPanel)} × 1 × ${f(FIXED.motion / 100, 4)} × ${f(m.physAbsorb)} = <b>${f(normal.physDmg)}</b></div>
     <div>会　心：${f(m.physPanel)} × ${f(crit.超会心倍率)} × ${f(FIXED.motion / 100, 4)} × ${f(m.physAbsorb)} = <b>${f(crit.physDmg)}</b></div>
     <div>负会心：${f(m.physPanel)} × ${f(NEG_CRIT_PHYS)} × ${f(FIXED.motion / 100, 4)} × ${f(m.physAbsorb)} = <b>${f(neg.physDmg)}</b></div>
     <div style="font-size:0.9em; color:#777;">超会心：${m.opt超会心.text}（倍率 ${f(m.opt超会心.value)}）</div>
 
-    <div style="color:#88ccff; margin:14px 0 6px;">三、属性基础</div>
+    <div style="color:#88ccff; margin:14px 0 6px;">四、属性基础</div>
     <div style="font-size:0.9em; color:#777;">属贯自带 × 属性攻击力强化 × 奋斗 × 钢壳/炎鳞</div>
     <div>${f(FIXED.baseElem)} × ${f(m.opt属攻.value)} × ${f(m.opt奋斗.value)} × ${f(m.opt钢壳.value)} = <b>${f(m.elemBase, 3)}</b></div>
     <div style="font-size:0.9em; color:#777;">属性攻击力强化：${m.opt属攻.text}（倍率 ${f(m.opt属攻.value)}）</div>
     <div style="font-size:0.9em; color:#777;">奋斗：${m.opt奋斗.text}（倍率 ${f(m.opt奋斗.value)}）</div>
     <div style="font-size:0.9em; color:#777;">钢壳/炎鳞：${m.opt钢壳.text}（倍率 ${f(m.opt钢壳.value)}）</div>
 
-    <div style="color:#88ccff; margin:14px 0 6px;">四、属性值合计</div>
+    <div style="color:#88ccff; margin:14px 0 6px;">五、属性值合计</div>
     <div style="font-size:0.9em; color:#777;">自带 + 属攻加点 + 连击 + 伏魔 + 龙转 + 其他</div>
     <div>${f(m.elemBase, 3)} + ${f(m.elemAtkFlat)} + ${f(m.chainFlat)} + ${f(m.fumoFlat)} + ${f(m.dragonFlat, 3)} + ${f(m.otherFlat)} = <b>${f(m.elemTotal, 3)}</b></div>
     <div style="font-size:0.9em; color:#777;">属性攻击力强化：${m.opt属攻.text}（加点 +${m.opt属攻.flat || 0}）</div>
@@ -501,7 +895,7 @@ function calc() {
     <div style="font-size:0.9em; color:#777;">伏魔耗命：${m.opt伏魔.text}（加点 +${m.opt伏魔.value}）</div>
     <div style="font-size:0.9em; color:#777;">其他：+${f(m.otherFlat, 2)}</div>
 
-    <div style="color:#88ccff; margin:14px 0 6px;">五、属性伤害</div>
+    <div style="color:#88ccff; margin:14px 0 6px;">六、属性伤害</div>
     <div style="font-size:0.9em; color:#777;">(属性值÷100) × 属痛 × 弱特 × 属会 × 笛子 × 属性吸收 × 物理面板</div>
     <div>非会心：(${f(m.elemTotal, 3)} ÷ 100) × ${f(m.属痛倍率)} × ${f(m.弱特倍率)} × 1 × ${f(m.笛子倍率)} × ${f(m.elemAbsorb)} × ${f(m.physPanel)} = <b>${f(normal.elemDmg)}</b></div>
     <div>会　心：(${f(m.elemTotal, 3)} ÷ 100) × ${f(m.属痛倍率)} × ${f(m.弱特倍率)} × ${f(crit.属会倍率)} × ${f(m.笛子倍率)} × ${f(m.elemAbsorb)} × ${f(m.physPanel)} = <b>${f(crit.elemDmg)}</b></div>
@@ -509,15 +903,15 @@ function calc() {
     <div style="font-size:0.9em; color:#777;">属痛龙珠：${m.opt属痛.text}（倍率 ${f(m.属痛倍率)}${m.opt属痛.key === '1' && m.elemAbsorb * 100 < 25 ? '，吸收不足25，未生效' : ''}）</div>
     <div style="font-size:0.9em; color:#777;">弱点特效【属性】：${m.opt弱特.text}（倍率 ${f(m.弱特倍率)}${m.opt弱特.key !== '0' && m.elemAbsorb * 100 < 20 ? '，吸收不足20，未生效' : ''}）</div>
     <div style="font-size:0.9em; color:#777;">会心击【属性】：${m.opt属会.text}（倍率 ${f(m.opt属会.value)}）</div>
-    <div style="font-size:0.9em; color:#777;">笛子属性攻击力提升：${m.opt笛子.text}（倍率 ${f(m.opt笛子.value)}）</div>
+    <div style="font-size:0.9em; color:#777;">笛子旋律「属性攻击力提升」：${m.笛子倍率 === 1 ? '未勾选' : `×${f(m.笛子倍率, 2)}`}（合计倍率 ${f(m.笛子倍率)}）</div>
 
-    <div style="color:#88ccff; margin:14px 0 6px;">六、最终伤害</div>
+    <div style="color:#88ccff; margin:14px 0 6px;">七、最终伤害</div>
     <div>非会心：${f(normal.physDmg)} + ${f(normal.elemDmg)} = <b style="color:#88ccff;">${f(normal.total)}</b></div>
     <div>会　心：${f(crit.physDmg)} + ${f(crit.elemDmg)} = <b style="color:#ffaa66;">${f(crit.total)}</b></div>
     <div>负会心：${f(neg.physDmg)} + ${f(neg.elemDmg)} = <b style="color:#ff6666;">${f(neg.total)}</b></div>
 
-    <div style="color:#88ccff; margin:14px 0 6px;">七、期望伤害</div>
-    <div>会心率：${f(critRateRaw)}%</div>
+    <div style="color:#88ccff; margin:14px 0 6px;">八、期望伤害</div>
+    <div>会心率来源：武器自带 ${f(weaponCrit)}% + 攻击猫 ${f(catCrit)}% + 看破 ${f(看破Crit)}% + 精神抖擞 ${f(精神抖擞Crit)}% + 奋斗 ${f(奋斗Crit)}% + 笛子「会心率提升」${f(fluitCrit)}% = 实际 ${f(critRateRaw)}%</div>
     ${critRate >= 0
       ? `<div>${f(normal.total)} × ${f(1 - critRate, 4)} + ${f(crit.total)} × ${f(critRate, 4)} = <b style="color:#ffcc66; font-size:1.15em;">${f(expected)}</b></div>`
       : `<div>${f(normal.total)} × ${f(1 - Math.abs(critRate), 4)} + ${f(neg.total)} × ${f(Math.abs(critRate), 4)} = <b style="color:#ffcc66; font-size:1.15em;">${f(expected)}</b></div>`
@@ -529,6 +923,15 @@ document.querySelectorAll('input, select').forEach(el => {
   el.addEventListener('input', calc);
   el.addEventListener('change', calc);
 });
+// 物品复选框：input/change 事件在部分移动浏览器上不稳定，显式绑定 click，并补上 change 兜底
+ITEM_IDS.forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('click', calc);
+  el.addEventListener('change', calc);
+});
+// 笛子旋律复选框的事件在 initMelody() 创建时已直接绑定，此处无需再绑
+
 
 document.getElementById('btnSave').addEventListener('click', () => {
   saveData();
@@ -553,6 +956,8 @@ document.getElementById('btnReset').addEventListener('click', () => {
 });
 
 initSelects();
+initWeapons();
+initArmor();
 const saved = loadData();
 applyData(saved || DEFAULTS);
 
