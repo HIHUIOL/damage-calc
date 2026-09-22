@@ -174,6 +174,17 @@
     color: #ffaa66;
     font-weight: 600;
   }
+  .save-act {
+    flex: none;
+    padding: 5px 9px;
+    border-radius: 6px;
+    border: 1px solid #444;
+    background: #2a2a2a;
+    color: #ccc;
+    font-size: 0.8em;
+    cursor: pointer;
+  }
+  .save-act.danger { color: #ff8888; }
 </style>
 </head>
 <body>
@@ -340,8 +351,6 @@
 </div>
 
 <div class="btn-row">
-  <button id="btnSave">保存</button>
-  <button id="btnLoad">读取</button>
   <button id="btnReset" class="danger">重置</button>
   <button id="btnRefresh" class="danger">刷新更新</button>
 </div>
@@ -352,6 +361,22 @@
     <span id="formulaArrow" style="font-size:0.85em; color:#888; transition:transform 0.2s;">▼ 展开</span>
   </h2>
   <div id="formulaBox" style="display:none; font-size:0.82em; color:#aaa; line-height:1.8; word-break:break-all; margin-top:8px;"></div>
+</div>
+
+<div class="card" style="margin-top:12px;">
+  <h2>存档</h2>
+  <div class="row" style="gap:8px;">
+    <input id="saveName" type="text" placeholder="输入存档名" style="flex:1; text-align:left; padding:8px;">
+    <button id="btnSaveNew" style="flex:none; min-width:96px; padding:8px 10px; border-radius:8px; border:1px solid #444; background:#2a2a2a; color:#e0e0e0; cursor:pointer;">保存为新存档</button>
+  </div>
+  <div id="saveList" style="margin-top:10px;"></div>
+  <div class="btn-row" style="margin-top:10px;">
+    <button id="btnCopyAll">复制全部存档</button>
+    <button id="btnImport">粘贴导入</button>
+  </div>
+  <div id="saveHint" style="font-size:0.78em; color:#888; margin-top:6px;">
+    存档保存在本机浏览器；换设备或清缓存前请「复制全部存档」备份。
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -430,7 +455,8 @@ const DEFAULTS = {
   armor_原初腰甲: true,
   armor_雪崩护腿: true
 };
-const STORAGE_KEY = 'damageCalcData';
+const STORAGE_KEY = 'damageCalcData';         // 自动记录「上次状态」（刷新不丢）
+const SAVES_KEY = 'damageCalcSaves';          // 多槽位存档数组
 
 // ---------- 书状态：'red' = 红书，'blue' = 蓝书（默认红书） ----------
 let BOOK = 'red';
@@ -703,6 +729,230 @@ function loadData() {
     try { return JSON.parse(raw); } catch(e) {}
   }
   return null;
+}
+
+// ============================================================
+// 多槽位存档（localStorage 数组，含书状态）
+// ============================================================
+function listSaves() {
+  const raw = localStorage.getItem(SAVES_KEY);
+  if (!raw) return [];
+  try {
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch(e) { return []; }
+}
+
+function writeSaves(arr) {
+  localStorage.setItem(SAVES_KEY, JSON.stringify(arr));
+  renderSaves();
+}
+
+// 保存为新存档
+function saveAsNew(name) {
+  name = (name || '').trim();
+  if (!name) { showToast('请先输入存档名'); return; }
+  const saves = listSaves();
+  const idx = saves.findIndex(s => s.name === name);
+  const entry = { name, time: Date.now(), data: getData() };
+  if (idx >= 0) {
+    if (!confirm(`已存在同名存档「${name}」，要覆盖它吗？`)) return;
+    saves[idx] = entry;
+  } else {
+    saves.unshift(entry);   // 新存档放最前
+  }
+  writeSaves(saves);
+  showToast(idx >= 0 ? '已覆盖存档' : '已保存新存档');
+}
+
+// 读取某存档
+function loadSave(i) {
+  const saves = listSaves();
+  const s = saves[i];
+  if (!s) return;
+  applyData(s.data);
+  showToast(`已读取「${s.name}」`);
+}
+
+// 覆盖某存档为当前状态
+function overwriteSave(i) {
+  const saves = listSaves();
+  const s = saves[i];
+  if (!s) return;
+  if (!confirm(`用当前状态覆盖「${s.name}」？`)) return;
+  s.data = getData();
+  s.time = Date.now();
+  writeSaves(saves);
+  showToast('已覆盖');
+}
+
+// 重命名
+function renameSave(i) {
+  const saves = listSaves();
+  const s = saves[i];
+  if (!s) return;
+  const name = prompt('新的存档名：', s.name);
+  if (name === null) return;
+  const nn = name.trim();
+  if (!nn) { showToast('名字不能为空'); return; }
+  s.name = nn;
+  writeSaves(saves);
+  showToast('已改名');
+}
+
+// 删除
+function deleteSave(i) {
+  const saves = listSaves();
+  const s = saves[i];
+  if (!s) return;
+  if (!confirm(`删除存档「${s.name}」？`)) return;
+  saves.splice(i, 1);
+  writeSaves(saves);
+  showToast('已删除');
+}
+
+function fmtTime(ts) {
+  const d = new Date(ts);
+  const p = n => String(n).padStart(2, '0');
+  return `${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+// 渲染存档列表
+function renderSaves() {
+  const box = document.getElementById('saveList');
+  if (!box) return;
+  const saves = listSaves();
+  if (!saves.length) {
+    box.innerHTML = '<div style="font-size:0.82em; color:#777; padding:6px 0;">还没有存档</div>';
+    return;
+  }
+  box.innerHTML = saves.map((s, i) => `
+    <div style="display:flex; align-items:center; gap:6px; padding:8px 0; border-bottom:1px solid #333; flex-wrap:wrap;">
+      <div style="flex:1; min-width:120px;">
+        <div style="color:#e0e0e0; font-size:0.9em;">${escapeHtml(s.name)}</div>
+        <div style="color:#888; font-size:0.75em;">${fmtTime(s.time)}</div>
+      </div>
+      <button class="save-act" data-act="load" data-i="${i}">读取</button>
+      <button class="save-act" data-act="overwrite" data-i="${i}">覆盖</button>
+      <button class="save-act" data-act="share" data-i="${i}">分享</button>
+      <button class="save-act" data-act="rename" data-i="${i}">改名</button>
+      <button class="save-act danger" data-act="delete" data-i="${i}">删除</button>
+    </div>
+  `).join('');
+  // 绑定按钮
+  box.querySelectorAll('.save-act').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const i = +btn.dataset.i;
+      const act = btn.dataset.act;
+      if (act === 'load') loadSave(i);
+      else if (act === 'overwrite') overwriteSave(i);
+      else if (act === 'share') shareSave(i);
+      else if (act === 'rename') renameSave(i);
+      else if (act === 'delete') deleteSave(i);
+    });
+  });
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&' + 'quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// ============================================================
+// 分享文本：纯 JSON（直白可读，无压缩）
+// 格式：{"type":"damageCalcSaves","version":1,"saves":[{name,time,data}]}
+// ============================================================
+function buildShareText(saves) {
+  return JSON.stringify({
+    type: 'damageCalcSaves',
+    version: 1,
+    saves: saves.map(s => ({ name: s.name, time: s.time || Date.now(), data: s.data }))
+  });
+}
+
+// 复制文本到剪贴板（带后备方案）
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch(e) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch(e2) { ok = false; }
+    document.body.removeChild(ta);
+    if (!ok) prompt('复制失败，请手动复制以下内容：', text);
+    return ok;
+  }
+}
+
+// 复制全部存档到剪贴板
+async function copyAllSaves() {
+  const saves = listSaves();
+  if (!saves.length) { showToast('还没有存档可复制'); return; }
+  const text = buildShareText(saves);
+  const ok = await copyText(text);
+  if (ok) showToast(`已复制 ${saves.length} 个存档（${text.length} 字符）`);
+}
+
+// 分享单个存档
+async function shareSave(i) {
+  const saves = listSaves();
+  const s = saves[i];
+  if (!s) return;
+  const text = buildShareText([s]);
+  const ok = await copyText(text);
+  if (ok) showToast(`已复制「${s.name}」分享码（${text.length} 字符）`);
+}
+
+// 解析分享/导入文本（纯 JSON）
+function parseShareText(text) {
+  text = (text || '').trim();
+  if (!text) return null;
+  let parsed;
+  try { parsed = JSON.parse(text); } catch(e) { return null; }
+  const incoming = Array.isArray(parsed) ? parsed : (parsed && parsed.saves);
+  return Array.isArray(incoming) ? incoming : null;
+}
+
+// 粘贴导入
+async function importSaves() {
+  let text = '';
+  try {
+    text = await navigator.clipboard.readText();
+  } catch(e) {
+    text = prompt('无法自动读取剪贴板，请把分享码粘贴到这里：') || '';
+  }
+  if (!text) { showToast('剪贴板为空'); return; }
+  const incoming = parseShareText(text);
+  if (!incoming) { showToast('分享码无效或格式不正确'); return; }
+  const valid = incoming.filter(s => s && s.name && s.data);
+  if (!valid.length) { showToast('存档数据无效'); return; }
+  const mode = confirm(
+    `读到 ${valid.length} 个存档。\n\n点「确定」= 合并到现有存档（同名会加后缀）\n点「取消」= 覆盖全部存档`
+  );
+  let saves = listSaves();
+  if (mode) {
+    // 合并：同名加后缀
+    valid.forEach(v => {
+      let nm = v.name;
+      let n = 1;
+      while (saves.some(s => s.name === nm)) { nm = v.name + '(' + (n++) + ')'; }
+      saves.unshift({ name: nm, time: v.time || Date.now(), data: v.data });
+    });
+  } else {
+    saves = valid.map(v => ({ name: v.name, time: v.time || Date.now(), data: v.data }));
+  }
+  writeSaves(saves);
+  showToast(`已导入 ${valid.length} 个存档`);
 }
 
 let toastTimer;
@@ -1034,6 +1284,17 @@ function calc() {
       : `<div>非会心 ${f(normal.total)} × ${f(1 - Math.abs(critRate), 4)} + 负会心 ${f(neg.total)} × ${f(Math.abs(critRate), 4)} = <b style="color:#ffcc66; font-size:1.15em;">${f(expected)}</b></div>`
     }
   `;
+
+  // 自动记录当前状态（刷新/关闭后不丢），做防抖避免频繁写盘
+  scheduleAutoSave();
+}
+
+let autoSaveTimer;
+function scheduleAutoSave() {
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(() => {
+    try { saveData(); } catch(e) {}
+  }, 400);
 }
 
 document.querySelectorAll('input, select').forEach(el => {
@@ -1050,23 +1311,25 @@ ITEM_IDS.forEach(id => {
 // 笛子旋律复选框的事件在 initMelody() 创建时已直接绑定，此处无需再绑
 
 
-document.getElementById('btnSave').addEventListener('click', () => {
-  saveData();
-  showToast('已保存');
+// ---------- 存档事件 ----------
+document.getElementById('btnSaveNew').addEventListener('click', () => {
+  saveAsNew(document.getElementById('saveName').value);
+  document.getElementById('saveName').value = '';
 });
 
-document.getElementById('btnLoad').addEventListener('click', () => {
-  const data = loadData();
-  if (data) {
-    applyData(data);
-    showToast('已读取');
-  } else {
-    showToast('没有保存过数据');
+document.getElementById('saveName').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    saveAsNew(document.getElementById('saveName').value);
+    document.getElementById('saveName').value = '';
   }
 });
 
+document.getElementById('btnCopyAll').addEventListener('click', copyAllSaves);
+document.getElementById('btnImport').addEventListener('click', importSaves);
+renderSaves();
+
 document.getElementById('btnReset').addEventListener('click', () => {
-  if (confirm('重置为默认参考值？你保存的存档不会被删除，可以点读取恢复。')) {
+  if (confirm('重置为默认参考值？（不会删除你的存档）')) {
     applyData(DEFAULTS);
     showToast('已重置为默认值');
   }
