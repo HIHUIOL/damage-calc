@@ -170,6 +170,35 @@ const SKILLS = {
     ]
   },
 
+  // ---------- 因祸得福：同时加属性值 + 物理攻击力（无阶段） ----------
+  // elem = 属性固定加点；atk = 物理加法区加点
+  因祸得福: {
+    label: '因祸得福',
+    type: 'physElemFlat',
+    options: [
+      { key: '0', value: 0, atk: 0, elem: 0, text: '无' },
+      { key: '1', value: 1, atk: 12, elem: 2, text: 'Lv1（攻击 +12，属性 +2）' },
+      { key: '2', value: 2, atk: 15, elem: 3, text: 'Lv2（攻击 +15，属性 +3）' },
+      { key: '3', value: 3, atk: 18, elem: 4, text: 'Lv3（攻击 +18，属性 +4）' }
+    ]
+  },
+
+  // ---------- 狂龙症【蚀】：未克服加攻击+属性；克服后只加会心 ----------
+  // atk = 物理加法区加点；elem = 属性固定加点；crit = 会心率
+  狂龙症蚀: {
+    label: '狂龙症【蚀】',
+    type: 'physElemFlat',
+    options: [
+      { key: '0',   value: 0, atk: 0,  elem: 0,  crit: 0,  text: '无' },
+      { key: '1u',  value: 1, atk: 10, elem: 5,  crit: 0,  text: 'Lv1 未克服（攻击 +10，属性 +5）' },
+      { key: '1c',  value: 1, atk: 0,  elem: 0,  crit: 20, text: 'Lv1 克服（会心 +20）' },
+      { key: '2u',  value: 2, atk: 15, elem: 7,  crit: 0,  text: 'Lv2 未克服（攻击 +15，属性 +7）' },
+      { key: '2c',  value: 2, atk: 0,  elem: 0,  crit: 25, text: 'Lv2 克服（会心 +25）' },
+      { key: '3u',  value: 3, atk: 20, elem: 10, crit: 0,  text: 'Lv3 未克服（攻击 +20，属性 +10）' },
+      { key: '3c',  value: 3, atk: 0,  elem: 0,  crit: 25, text: 'Lv3 克服（会心 +25）' }
+    ]
+  },
+
   // ---------- 花链：选一个 ----------
   花链: {
     label: '花链',

@@ -192,10 +192,10 @@
 <h1>属贯伤害计算器</h1>
 
 <div class="card">
-  <h2>物理部分</h2>
+  <h2>物理技能</h2>
 
   <div class="subgroup">
-    <div class="subgroup-title">物理基础</div>
+    <div class="subgroup-title">【物理基础】武器 · 面板</div>
     <div class="row"><label>选择武器</label><select id="weaponSelect"></select></div>
     <div class="row"><label>武器基础面板</label><input id="weaponPanel" type="number" value="736"></div>
     <div class="row"><label>怪异强化攻击力</label><input id="qiguaiPanel" type="number" value="0"></div>
@@ -206,26 +206,30 @@
   </div>
 
   <div class="subgroup">
-    <div class="subgroup-title">物理技能</div>
+    <div class="subgroup-title">【物理乘区】与攻击同乘区（乘算）</div>
     <div class="row"><label>攻击</label><select id="skill_攻击"></select></div>
     <div class="row"><label>不屈</label><select id="skill_不屈"></select></div>
     <div class="row"><label>火场怪力</label><select id="skill_火场怪力"></select></div>
     <div class="row"><label>强化太鼓之技</label><select id="skill_强化太鼓之技"></select></div>
-    <div class="row"><label>激励</label><select id="skill_激励"></select></div>
+  </div>
+
+  <div class="subgroup">
+    <div class="subgroup-title">【物理加法】直接加面板（加法）</div>
     <div class="row"><label>怨恨</label><select id="skill_怨恨"></select></div>
+    <div class="row"><label>激励</label><select id="skill_激励"></select></div>
     <div class="row"><label>业铠【修罗】</label><select id="skill_业铠修罗"></select></div>
-    <div class="row"><label>气血觉醒（攻/属）</label><select id="skill_气血觉醒"></select></div>
     <div class="row"><label>其他技能攻击力（直接填值）</label><input id="otherSkillAtk" type="number" step="1" value="0"></div>
   </div>
 
   <div class="subgroup">
-    <div class="subgroup-title">会心相关技能</div>
+    <div class="subgroup-title">【会心】</div>
     <div class="row"><label>攻击猫·强化咆哮之技</label><select id="skill_攻击猫"></select></div>
     <div class="row"><label>看破</label><select id="skill_看破"></select></div>
     <div class="row"><label>精神抖擞</label><select id="skill_精神抖擞"></select></div>
     <div class="row"><label>超会心</label><select id="skill_超会心"></select></div>
+    <div class="row"><label>狂龙症【蚀】</label><select id="skill_狂龙症蚀"></select></div>
     <div style="font-size:0.78em; color:#888; margin-top:4px;">
-      会心率由「武器自带会心」+ 攻击猫 + 看破 + 精神抖擞 + 奋斗（会心）+ 笛子「会心率提升」自动叠加，结果显示在下方「汇总」卡片。
+      会心率由「武器自带会心」+ 攻击猫 + 看破 + 精神抖擞 + 奋斗（会心）+ 狂龙症（克服）+ 笛子「会心率提升」自动叠加，结果显示在下方「汇总」卡片。
     </div>
   </div>
 
@@ -250,24 +254,30 @@
 </div>
 
 <div class="card">
-  <h2>属性基础</h2>
-  <div class="row"><label>属性攻击力强化</label><select id="skill_属性攻击力强化"></select></div>
-  <div class="row"><label>奋斗</label><select id="skill_奋斗"></select></div>
-  <div class="row"><label>钢壳/炎鳞</label><select id="skill_钢壳炎鳞"></select></div>
-</div>
+  <h2>属性技能</h2>
 
-<div class="card">
-  <h2>属性固定加点</h2>
-  <div class="row"><label>连击</label><select id="skill_连击"></select></div>
-  <div class="row"><label>伏魔耗命</label><select id="skill_伏魔耗命"></select></div>
-  <div class="row"><label>其他（直接填数值）</label><input id="otherFlat" type="number" step="0.01" value="0"></div>
-</div>
+  <div class="subgroup">
+    <div class="subgroup-title">【属性基础】乘区倍率</div>
+    <div class="row"><label>属性攻击力强化</label><select id="skill_属性攻击力强化"></select></div>
+    <div class="row"><label>奋斗</label><select id="skill_奋斗"></select></div>
+    <div class="row"><label>钢壳/炎鳞</label><select id="skill_钢壳炎鳞"></select></div>
+  </div>
 
-<div class="card">
-  <h2>属性乘区</h2>
-  <div class="row"><label>属痛龙珠</label><select id="skill_属痛龙珠"></select></div>
-  <div class="row"><label>弱点特效【属性】</label><select id="skill_弱点特效属性"></select></div>
-  <div class="row"><label>会心击【属性】</label><select id="skill_会心击属性"></select></div>
+  <div class="subgroup">
+    <div class="subgroup-title">【属性固定加点】直接加属性值（加法）</div>
+    <div class="row"><label>连击</label><select id="skill_连击"></select></div>
+    <div class="row"><label>伏魔耗命</label><select id="skill_伏魔耗命"></select></div>
+    <div class="row"><label>气血觉醒（攻/属）</label><select id="skill_气血觉醒"></select></div>
+    <div class="row"><label>因祸得福</label><select id="skill_因祸得福"></select></div>
+    <div class="row"><label>其他（直接填数值）</label><input id="otherFlat" type="number" step="0.01" value="0"></div>
+  </div>
+
+  <div class="subgroup">
+    <div class="subgroup-title">【属性乘区】</div>
+    <div class="row"><label>属痛龙珠</label><select id="skill_属痛龙珠"></select></div>
+    <div class="row"><label>弱点特效【属性】</label><select id="skill_弱点特效属性"></select></div>
+    <div class="row"><label>会心击【属性】</label><select id="skill_会心击属性"></select></div>
+  </div>
 </div>
 
 <div class="card">
@@ -436,6 +446,8 @@ const DEFAULTS = {
   skill_怨恨: '0',
   skill_业铠修罗: '0',
   skill_气血觉醒: '0',
+  skill_因祸得福: '0',
+  skill_狂龙症蚀: '0',
   skill_攻击猫: '0',
   skill_看破: '2',
   skill_精神抖擞: '3',
@@ -983,6 +995,8 @@ function calcPhysPanel() {
   const opt怨恨 = getSkillOption('怨恨', document.getElementById('skill_怨恨').value);
   const opt业铠修罗 = getSkillOption('业铠修罗', document.getElementById('skill_业铠修罗').value);
   const opt气血觉醒 = getSkillOption('气血觉醒', document.getElementById('skill_气血觉醒').value);
+  const opt因祸得福 = getSkillOption('因祸得福', document.getElementById('skill_因祸得福').value);
+  const opt狂龙症 = getSkillOption('狂龙症蚀', document.getElementById('skill_狂龙症蚀').value);
   const opt伏魔 = getSkillOption('伏魔耗命', document.getElementById('skill_伏魔耗命').value);
   const opt连击 = getSkillOption('连击', document.getElementById('skill_连击').value);
   const melody = getMelody();   // 5 条旋律汇总（互斥已处理）
@@ -1006,9 +1020,11 @@ function calcPhysPanel() {
   // 伏魔耗命：蓝书改为加攻击力（红书是加属性，不进物理）
   const 伏魔平A = isBlue() ? (opt伏魔.blueAtk || 0) : 0;
 
-  // 加法区：花链 + 物品 + 激励 + 怨恨 + 业铠【修罗】(红书) + 气血觉醒 + 伏魔(蓝书) + 连击攻击 + 攻击技能固定加点 + 其他技能攻击力
+  // 加法区：花链 + 物品 + 激励 + 怨恨 + 业铠【修罗】(红书) + 气血觉醒 + 因祸得福 + 狂龙症(未克服) + 伏魔(蓝书) + 连击攻击 + 攻击技能固定加点 + 其他技能攻击力
   const flat = opt花链.value + itemFlat + opt激励.value + opt怨恨.value + 业铠平A
              + (opt气血觉醒.atk || 0)
+             + (opt因祸得福.atk || 0)
+             + (opt狂龙症.atk || 0)
              + 伏魔平A
              + (opt连击.atk || 0)
              + (opt攻击.flat || 0) + otherSkillAtk;
@@ -1021,7 +1037,7 @@ function calcPhysPanel() {
     physPanel, base, gunBarrel, mult, flat, itemFlat,
     weaponPanel, qiguaiPanel, otherSkillAtk,
     melody,
-    opt枪管, opt零件, opt攻击, opt不屈, opt火场, opt太鼓, opt花链, opt激励, opt怨恨, opt业铠修罗, opt气血觉醒, opt伏魔, opt连击
+    opt枪管, opt零件, opt攻击, opt不屈, opt火场, opt太鼓, opt花链, opt激励, opt怨恨, opt业铠修罗, opt气血觉醒, opt伏魔, opt连击, opt因祸得福, opt狂龙症
   };
 }
 
@@ -1091,6 +1107,8 @@ function calcOne(mode) {
   const opt弱特 = getSkillOption('弱点特效属性', document.getElementById('skill_弱点特效属性').value);
   const opt属会 = getSkillOption('会心击属性', document.getElementById('skill_会心击属性').value);
   const opt气血觉醒 = getSkillOption('气血觉醒', document.getElementById('skill_气血觉醒').value);
+  const opt因祸得福 = getSkillOption('因祸得福', document.getElementById('skill_因祸得福').value);
+  const opt狂龙症 = getSkillOption('狂龙症蚀', document.getElementById('skill_狂龙症蚀').value);
   const opt业铠修罗 = getSkillOption('业铠修罗', document.getElementById('skill_业铠修罗').value);
 
   const resist = calcResist();
@@ -1122,8 +1140,10 @@ function calcOne(mode) {
   // 伏魔耗命：红书加属性；蓝书改为加攻击力（不进属性合计）
   const fumoFlat = isBlue() ? 0 : (opt伏魔.value || 0);
   const qixueFlat = opt气血觉醒.elem || 0;
+  const yinguoFlat = opt因祸得福.elem || 0;
+  const kuanglongFlat = opt狂龙症.elem || 0;
 
-  const elemSum = elemBase + elemAtkFlat + chainFlat + fumoFlat + qixueFlat + dragonFlat + otherFlat;
+  const elemSum = elemBase + elemAtkFlat + chainFlat + fumoFlat + qixueFlat + yinguoFlat + kuanglongFlat + dragonFlat + otherFlat;
 
   let 属痛倍率 = opt属痛.value;
   if (opt属痛.key === '1' && elemAbsorb * 100 < 25) 属痛倍率 = 1.0;
@@ -1147,10 +1167,10 @@ function calcOne(mode) {
     opt超会心, opt属攻, opt奋斗, opt钢壳, opt连击, opt伏魔,
     opt属痛, opt弱特, opt属会,
     超会心倍率, 属会倍率,
-    elemBase, elemAtkFlat, chainFlat, fumoFlat, qixueFlat, dragonFlat, elemSum, elemTotal,
+    elemBase, elemAtkFlat, chainFlat, fumoFlat, qixueFlat, yinguoFlat, kuanglongFlat, dragonFlat, elemSum, elemTotal,
     属痛倍率, 弱特倍率, 笛子倍率,
     elemAbsorb, resist,
-    opt气血觉醒, opt业铠修罗,
+    opt气血觉醒, opt业铠修罗, opt因祸得福, opt狂龙症,
     mode
   };
 }
@@ -1172,9 +1192,11 @@ function calc() {
   const 精神抖擞Crit = opt精神抖擞.value || 0;
   const opt奋斗 = getSkillOption('奋斗', document.getElementById('skill_奋斗').value);
   const 奋斗Crit = opt奋斗.crit || 0;
+  const opt狂龙症 = getSkillOption('狂龙症蚀', document.getElementById('skill_狂龙症蚀').value);
+  const 狂龙症Crit = opt狂龙症.crit || 0;
   const fluitCrit = getMelody().crit || 0;
 
-  let critRateRaw = weaponCrit + catCrit + 看破Crit + 精神抖擞Crit + 奋斗Crit + fluitCrit;
+  let critRateRaw = weaponCrit + catCrit + 看破Crit + 精神抖擞Crit + 奋斗Crit + 狂龙症Crit + fluitCrit;
   critRateRaw = Math.max(-100, Math.min(100, critRateRaw));
 
   const critRate = critRateRaw / 100;
@@ -1252,12 +1274,14 @@ function calc() {
     ${isBlue() ? `<div style="font-size:0.9em; color:#777;">业铠【修罗】(蓝书)：${m.opt业铠修罗.blueText || m.opt业铠修罗.text}</div>` : ''}
 
     <div style="color:#88ccff; margin:14px 0 6px;">五、属性值合计</div>
-    <div style="font-size:0.9em; color:#777;">（自带 + 属攻加点 + 连击 + 伏魔 + 气血觉醒 + 龙转 + 其他）× 笛子「属性攻击力提升」</div>
-    <div>${f(m.elemBase, 3)} + 属攻加点 ${f(m.elemAtkFlat)} + 连击 ${f(m.chainFlat)} + 伏魔 ${f(m.fumoFlat)} + 气血觉醒 ${f(m.qixueFlat)} + 龙转 ${f(m.dragonFlat, 3)} + 其他 ${f(m.otherFlat)} = ${f(m.elemSum, 3)}</div>
+    <div style="font-size:0.9em; color:#777;">（自带 + 属攻加点 + 连击 + 伏魔 + 气血觉醒 + 因祸得福 + 狂龙症 + 龙转 + 其他）× 笛子「属性攻击力提升」</div>
+    <div>${f(m.elemBase, 3)} + 属攻加点 ${f(m.elemAtkFlat)} + 连击 ${f(m.chainFlat)} + 伏魔 ${f(m.fumoFlat)} + 气血觉醒 ${f(m.qixueFlat)} + 因祸得福 ${f(m.yinguoFlat)} + 狂龙症 ${f(m.kuanglongFlat)} + 龙转 ${f(m.dragonFlat, 3)} + 其他 ${f(m.otherFlat)} = ${f(m.elemSum, 3)}</div>
     <div>${f(m.elemSum, 3)} × 笛子 ${f(m.笛子倍率, 2)} = <b style="color:#ffcc66;">${f(m.elemTotal, 3)}</b></div>
     <div style="font-size:0.9em; color:#777;">属性攻击力强化：${m.opt属攻.text}（加点 +${m.opt属攻.flat || 0}）</div>
     <div style="font-size:0.9em; color:#777;">连击：${m.opt连击.text}（加点 +${m.opt连击.value}）</div>
     <div style="font-size:0.9em; color:#777;">气血觉醒：${m.opt气血觉醒.text}（属性加点 +${m.qixueFlat}）</div>
+    <div style="font-size:0.9em; color:#777;">因祸得福：${m.opt因祸得福.text}（属性加点 +${m.yinguoFlat}）</div>
+    <div style="font-size:0.9em; color:#777;">狂龙症【蚀】：${m.opt狂龙症.text}（属性加点 +${m.kuanglongFlat}）</div>
     <div style="font-size:0.9em; color:#777;">伏魔耗命：${m.opt伏魔.text}（${isBlue() ? `蓝书 → 攻击 +${m.opt伏魔.blueAtk || 0}，不计入属性` : `属性加点 +${m.opt伏魔.value}`}）</div>
     <div style="font-size:0.9em; color:#777;">龙气转换：${m.resist.opt龙气.text}，龙转属性值 = ${isBlue() ? '0（蓝书不转属性）' : `${m.resist.total} ÷ ${f(m.resist.opt龙气.value)} = ${f(m.dragonFlat, 3)}`}</div>
     <div style="font-size:0.9em; color:#777;">其他：+${f(m.otherFlat, 2)}</div>
@@ -1278,7 +1302,7 @@ function calc() {
     <div>负会心：${f(neg.physDmg)} + ${f(neg.elemDmg)} = <b style="color:#ff6666;">${f(neg.total)}</b></div>
 
     <div style="color:#88ccff; margin:14px 0 6px;">八、期望伤害</div>
-    <div style="font-size:0.9em; color:#777;">会心率来源：武器自带 ${f(weaponCrit)}% + 攻击猫 ${f(catCrit)}% + 看破 ${f(看破Crit)}% + 精神抖擞 ${f(精神抖擞Crit)}% + 奋斗 ${f(奋斗Crit)}% + 笛子「会心率提升」${f(fluitCrit)}% = 实际 ${f(critRateRaw)}%</div>
+    <div style="font-size:0.9em; color:#777;">会心率来源：武器自带 ${f(weaponCrit)}% + 攻击猫 ${f(catCrit)}% + 看破 ${f(看破Crit)}% + 精神抖擞 ${f(精神抖擞Crit)}% + 奋斗 ${f(奋斗Crit)}% + 狂龙症 ${f(狂龙症Crit)}% + 笛子「会心率提升」${f(fluitCrit)}% = 实际 ${f(critRateRaw)}%</div>
     ${critRate >= 0
       ? `<div>非会心 ${f(normal.total)} × ${f(1 - critRate, 4)} + 会心 ${f(crit.total)} × ${f(critRate, 4)} = <b style="color:#ffcc66; font-size:1.15em;">${f(expected)}</b></div>`
       : `<div>非会心 ${f(normal.total)} × ${f(1 - Math.abs(critRate), 4)} + 负会心 ${f(neg.total)} × ${f(Math.abs(critRate), 4)} = <b style="color:#ffcc66; font-size:1.15em;">${f(expected)}</b></div>`
