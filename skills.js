@@ -49,6 +49,16 @@ const SKILLS = {
     ]
   },
 
+  // ---------- 不屈：Lv1 物理面板 ×1.20（和「攻击」同一乘区） ----------
+  不屈: {
+    label: '不屈',
+    type: 'physPanelMult',
+    options: [
+      { key: '0', value: 1.00, text: '无' },
+      { key: '1', value: 1.20, text: 'Lv1（×1.20）' }
+    ]
+  },
+
   // ---------- 火场怪力：人火 / 猫火 二选一 ----------
   火场怪力: {
     label: '火场怪力',
@@ -132,15 +142,31 @@ const SKILLS = {
     ]
   },
 
-  // ---------- 业铠【修罗】：每级 +N 攻击力 ----------
+  // ---------- 业铠【修罗】：红书 +N 攻击力；蓝书改为属性倍率（奋斗同乘区）并扣全耐性 ----------
   业铠修罗: {
     label: '业铠【修罗】',
     type: 'physPanelFlat',
     options: [
-      { key: '0', value: 0,  text: '无' },
-      { key: '1', value: 15, text: 'Lv1（+15）' },
-      { key: '2', value: 25, text: 'Lv2（+25）' },
-      { key: '3', value: 35, text: 'Lv3（+35）' }
+      { key: '0', value: 0,  text: '无', blueText: '无' },
+      { key: '1', value: 15, text: 'Lv1（+15）',  blueText: 'Lv1（属性 ×1.05，全耐性 −10）', blueElemMult: 1.05, blueResist: -10 },
+      { key: '2', value: 25, text: 'Lv2（+25）',  blueText: 'Lv2（属性 ×1.10，全耐性 −25）', blueElemMult: 1.10, blueResist: -25 },
+      { key: '3', value: 35, text: 'Lv3（+35）',  blueText: 'Lv3（属性 ×1.20，全耐性 −50）', blueElemMult: 1.20, blueResist: -50 }
+    ]
+  },
+
+  // ---------- 气血觉醒：同时加物理攻击力 + 属性值，分一阶段/二阶段 ----------
+  // atk = 物理加法区加点；elem = 属性固定加点
+  气血觉醒: {
+    label: '气血觉醒',
+    type: 'physElemFlat',
+    options: [
+      { key: '0',  value: 0,  atk: 0,  elem: 0,  text: '无' },
+      { key: '1a', value: 1,  atk: 4,  elem: 4,  text: 'Lv1 一阶段（攻击 +4，属性 +4）' },
+      { key: '1b', value: 1,  atk: 8,  elem: 8,  text: 'Lv1 二阶段（攻击 +8，属性 +8）' },
+      { key: '2a', value: 2,  atk: 4,  elem: 4,  text: 'Lv2 一阶段（攻击 +4，属性 +4）' },
+      { key: '2b', value: 2,  atk: 15, elem: 10, text: 'Lv2 二阶段（攻击 +15，属性 +10）' },
+      { key: '3a', value: 3,  atk: 10, elem: 8,  text: 'Lv3 一阶段（攻击 +10，属性 +8）' },
+      { key: '3b', value: 3,  atk: 25, elem: 15, text: 'Lv3 二阶段（攻击 +25，属性 +15）' }
     ]
   },
 
@@ -264,21 +290,21 @@ const SKILLS = {
     ]
   },
 
-  // ---------- 伏魔耗命：属性固定加点 ----------
+  // ---------- 伏魔耗命：红书加属性值；蓝书改为加攻击力（blueAtk） ----------
   伏魔耗命: {
     label: '伏魔耗命',
     type: 'elemFlat',
     options: [
-      { key: '0',   value: 0,  text: '无' },
-      { key: '1-1', value: 5,  text: 'Lv1·1虫（属性 +5）' },
-      { key: '1-2', value: 8,  text: 'Lv1·2虫（属性 +8）' },
-      { key: '1-3', value: 12, text: 'Lv1·3虫（属性 +12）' },
-      { key: '2-1', value: 7,  text: 'Lv2·1虫（属性 +7）' },
-      { key: '2-2', value: 12, text: 'Lv2·2虫（属性 +12）' },
-      { key: '2-3', value: 15, text: 'Lv2·3虫（属性 +15）' },
-      { key: '3-1', value: 10, text: 'Lv3·1虫（属性 +10）' },
-      { key: '3-2', value: 15, text: 'Lv3·2虫（属性 +15）' },
-      { key: '3-3', value: 20, text: 'Lv3·3虫（属性 +20）' }
+      { key: '0',   value: 0,  blueAtk: 0,  text: '无', blueText: '无' },
+      { key: '1-1', value: 5,  blueAtk: 15, text: 'Lv1·1虫（属性 +5）', blueText: 'Lv1·1虫（攻击 +15）' },
+      { key: '1-2', value: 8,  blueAtk: 20, text: 'Lv1·2虫（属性 +8）', blueText: 'Lv1·2虫（攻击 +20）' },
+      { key: '1-3', value: 12, blueAtk: 25, text: 'Lv1·3虫（属性 +12）', blueText: 'Lv1·3虫（攻击 +25）' },
+      { key: '2-1', value: 7,  blueAtk: 20, text: 'Lv2·1虫（属性 +7）', blueText: 'Lv2·1虫（攻击 +20）' },
+      { key: '2-2', value: 12, blueAtk: 25, text: 'Lv2·2虫（属性 +12）', blueText: 'Lv2·2虫（攻击 +25）' },
+      { key: '2-3', value: 15, blueAtk: 30, text: 'Lv2·3虫（属性 +15）', blueText: 'Lv2·3虫（攻击 +30）' },
+      { key: '3-1', value: 10, blueAtk: 25, text: 'Lv3·1虫（属性 +10）', blueText: 'Lv3·1虫（攻击 +25）' },
+      { key: '3-2', value: 15, blueAtk: 30, text: 'Lv3·2虫（属性 +15）', blueText: 'Lv3·2虫（攻击 +30）' },
+      { key: '3-3', value: 20, blueAtk: 35, text: 'Lv3·3虫（属性 +20）', blueText: 'Lv3·3虫（攻击 +35）' }
     ]
   },
 
@@ -322,15 +348,16 @@ const SKILLS = {
   // 耐性相关（每项耐性 +N）
   // ============================================================
 
-  // ---------- 激昂：每项耐性 +N ----------
+  // ---------- 激昂：每项耐性 +N（蓝书下不增加耐性） ----------
   激昂: {
     label: '激昂',
     type: 'resist',
+    blueOff: true,
     options: [
-      { key: '0', value: 0,  text: '无' },
-      { key: '1', value: 5,  text: 'Lv1（全耐性 +5）' },
-      { key: '2', value: 10, text: 'Lv2（全耐性 +10）' },
-      { key: '3', value: 20, text: 'Lv3（全耐性 +20）' }
+      { key: '0', value: 0,  text: '无', blueText: '无' },
+      { key: '1', value: 5,  text: 'Lv1（全耐性 +5）', blueText: 'Lv1（蓝书不加耐性）' },
+      { key: '2', value: 10, text: 'Lv2（全耐性 +10）', blueText: 'Lv2（蓝书不加耐性）' },
+      { key: '3', value: 20, text: 'Lv3（全耐性 +20）', blueText: 'Lv3（蓝书不加耐性）' }
     ]
   },
 
@@ -410,13 +437,14 @@ const SKILLS = {
     ]
   },
 
-  // ---------- 龙气转换：+10 全耐性 + 耐性转属性 ----------
+  // ---------- 龙气转换：红书 +10 全耐性 + 耐性转属性；蓝书不转属性（保留 +10 全耐性） ----------
   龙气转换: {
     label: '龙气转换',
     type: 'dragonConv',
+    blueNoConv: true,
     options: [
-      { key: '0', value: 0,    text: '无' },
-      { key: '3', value: 12.5, text: 'Lv3（全耐性 +10，总耐性÷12.5 转属性）' }
+      { key: '0', value: 0,    text: '无', blueText: '无' },
+      { key: '3', value: 12.5, text: 'Lv3（全耐性 +10，总耐性÷12.5 转属性）', blueText: 'Lv3（全耐性 +10，蓝书不转属性）' }
     ]
   }
 

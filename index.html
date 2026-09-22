@@ -159,6 +159,21 @@
     z-index: 999;
   }
   .toast.show { opacity: 1; }
+  .book-btn {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #444;
+    background: #2a2a2a;
+    color: #bbb;
+    font-size: 0.9em;
+    cursor: pointer;
+  }
+  .book-btn.active {
+    background: #3a2a2a;
+    border-color: #ffaa66;
+    color: #ffaa66;
+    font-weight: 600;
+  }
 </style>
 </head>
 <body>
@@ -182,11 +197,13 @@
   <div class="subgroup">
     <div class="subgroup-title">物理技能</div>
     <div class="row"><label>攻击</label><select id="skill_攻击"></select></div>
+    <div class="row"><label>不屈</label><select id="skill_不屈"></select></div>
     <div class="row"><label>火场怪力</label><select id="skill_火场怪力"></select></div>
     <div class="row"><label>强化太鼓之技</label><select id="skill_强化太鼓之技"></select></div>
     <div class="row"><label>激励</label><select id="skill_激励"></select></div>
     <div class="row"><label>怨恨</label><select id="skill_怨恨"></select></div>
     <div class="row"><label>业铠【修罗】</label><select id="skill_业铠修罗"></select></div>
+    <div class="row"><label>气血觉醒（攻/属）</label><select id="skill_气血觉醒"></select></div>
     <div class="row"><label>其他技能攻击力（直接填值）</label><input id="otherSkillAtk" type="number" step="1" value="0"></div>
   </div>
 
@@ -205,7 +222,7 @@
     <div class="subgroup-title">笛子旋律（可多选，同时生效）</div>
     <div id="melodyBox" style="display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-top:6px;"></div>
     <div style="font-size:0.78em; color:#888; margin-top:4px;">
-      提示：「气炎旋律」与「攻击力提升」只生效一个（同时勾选时取气炎旋律 ×1.20）。
+      提示：「气炎旋律」与「攻击力提升」只生效一个（勾哪个哪个生效，后勾的顶替先勾的）。
     </div>
   </div>
 
@@ -287,8 +304,19 @@
     <label style="color:#ffcc66; font-weight:600;">会心率（自动，%）</label>
     <span id="critRateDisplay" style="color:#ffcc66; font-weight:600; font-size:1.1em;">--</span>
   </div>
-  <div class="row"><label>物理吸收（1=100%）</label><input id="physAbsorb" type="number" step="0.01" value="1"></div>
-  <div class="row"><label>属性吸收（0.3=30%）</label><input id="elemAbsorb" type="number" step="0.01" value="0.3"></div>
+  <div class="row"><label>物理肉质（100=吸收100%）</label><input id="physAbsorb" type="number" step="1" value="100"></div>
+  <div class="row"><label>属性肉质（30=吸收30%）</label><input id="elemAbsorb" type="number" step="1" value="30"></div>
+</div>
+
+<div class="card" style="padding:10px 14px;">
+  <div class="row" style="justify-content:space-between;">
+    <label style="font-weight:600;">书状态</label>
+    <div style="display:flex; gap:8px;">
+      <button id="btnRed" class="book-btn active" style="flex:none; min-width:80px;">红书</button>
+      <button id="btnBlue" class="book-btn" style="flex:none; min-width:80px;">蓝书</button>
+    </div>
+  </div>
+  <div id="bookHint" style="font-size:0.78em; color:#888; margin-top:4px;"></div>
 </div>
 
 <div class="result-main">
@@ -319,8 +347,11 @@
 </div>
 
 <div class="card" style="margin-top:12px;">
-  <h2>计算公式</h2>
-  <div id="formulaBox" style="font-size:0.82em; color:#aaa; line-height:1.8; word-break:break-all;"></div>
+  <h2 id="formulaToggle" style="cursor:pointer; user-select:none; display:flex; align-items:center; justify-content:space-between;">
+    <span>计算公式</span>
+    <span id="formulaArrow" style="font-size:0.85em; color:#888; transition:transform 0.2s;">▼ 展开</span>
+  </h2>
+  <div id="formulaBox" style="display:none; font-size:0.82em; color:#aaa; line-height:1.8; word-break:break-all; margin-top:8px;"></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -342,8 +373,8 @@ const DEFAULTS = {
   weaponPanel: 370,
   qiguaiPanel: 40,
   weaponCrit: -20,
-  physAbsorb: 1,
-  elemAbsorb: 0.3,
+  physAbsorb: 100,
+  elemAbsorb: 30,
   otherFlat: 0,
   otherSkillAtk: 0,
   // 以下耐性 = 默认 5 件装备（堕天/脉动/健美/原初/雪崩）之和
@@ -372,12 +403,14 @@ const DEFAULTS = {
   skill_强力枪管: '1',
   skill_零件改造: '0',
   skill_攻击: '7',
+  skill_不屈: '0',
   skill_火场怪力: 'hr',
   skill_强化太鼓之技: '0',
   skill_花链: 'l4',
   skill_激励: '0',
   skill_怨恨: '0',
   skill_业铠修罗: '0',
+  skill_气血觉醒: '0',
   skill_攻击猫: '0',
   skill_看破: '2',
   skill_精神抖擞: '3',
@@ -397,8 +430,12 @@ const DEFAULTS = {
   armor_原初腰甲: true,
   armor_雪崩护腿: true
 };
-
 const STORAGE_KEY = 'damageCalcData';
+
+// ---------- 书状态：'red' = 红书，'blue' = 蓝书（默认红书） ----------
+let BOOK = 'red';
+function isBlue() { return BOOK === 'blue'; }
+
 
 function getSkillOption(skillName, key) {
   const skill = SKILLS[skillName];
@@ -427,25 +464,34 @@ function initMelody() {
     const cb = document.createElement('input');
     cb.type = 'checkbox';
     cb.id = 'melody_' + it.key;
-    // 直接在创建时绑定事件，确保勾选后立即生效（不依赖外部绑定顺序）
+    // 互斥处理：勾选某条时取消与它互斥的另一条（后点的生效）
+    cb.addEventListener('change', () => {
+      if (cb.checked) {
+        // 本条若有互斥项（如气炎→攻击力提升），取消对方
+        if (it.exclusive) {
+          const other = document.getElementById('melody_' + it.exclusive);
+          if (other) other.checked = false;
+        }
+        // 若有别的旋律把本条当作互斥项（攻击力提升←气炎），也取消对方
+        MELODY.items.forEach(o => {
+          if (o.exclusive === it.key) {
+            const other = document.getElementById('melody_' + o.key);
+            if (other) other.checked = false;
+          }
+        });
+      }
+      calc();
+    });
     cb.addEventListener('input', calc);
-    cb.addEventListener('change', calc);
     wrap.appendChild(cb);
     wrap.appendChild(document.createTextNode(' ' + it.label));
     box.appendChild(wrap);
   });
 }
 
-// 互斥处理：气炎旋律 与 攻击力提升 只生效一个（同时勾选时保留气炎，取消攻击力提升）
-function resolveMelodyExclusive() {
-  MELODY.items.forEach(it => {
-    if (!it.exclusive) return;
-    if (melodyChecked(it.key) && melodyChecked(it.exclusive)) {
-      const other = document.getElementById('melody_' + it.exclusive);
-      if (other) other.checked = false;
-    }
-  });
-}
+// 互斥处理：已改为在复选框 change 事件里「后点者生效」处理（见 initMelody）。
+// 这里保留空函数占位，getMelody 仍可安全调用。
+function resolveMelodyExclusive() {}
 
 // 汇总旋律效果
 function getMelody() {
@@ -463,6 +509,28 @@ function getMelody() {
   return { physMult, crit, elemMult, resist, picked };
 }
 
+// 根据书状态取选项显示文字（蓝书优先用 blueText）
+function optionText(opt) {
+  if (isBlue() && opt.blueText) return opt.blueText;
+  return opt.text;
+}
+
+// 重新渲染所有技能下拉框的选项文字（切书时调用，保留当前选中值）
+function refreshSkillTexts() {
+  Object.keys(SKILLS).forEach(skillName => {
+    if (skillName === '笛子旋律') return;
+    const el = document.getElementById('skill_' + skillName);
+    if (!el) return;
+    const skill = SKILLS[skillName];
+    const cur = el.value;
+    skill.options.forEach((opt, i) => {
+      const node = el.options[i];
+      if (node) node.textContent = optionText(opt);
+    });
+    el.value = cur;
+  });
+}
+
 function initSelects() {
   Object.keys(SKILLS).forEach(skillName => {
     if (skillName === '笛子旋律') return;   // 旋律是复选框，单独初始化
@@ -473,7 +541,7 @@ function initSelects() {
     skill.options.forEach(opt => {
       const option = document.createElement('option');
       option.value = opt.key;
-      option.textContent = opt.text;
+      option.textContent = optionText(opt);
       el.appendChild(option);
     });
   });
@@ -588,6 +656,7 @@ function getData() {
     const el = document.getElementById(id);
     if (el) data[id] = el.checked;
   });
+  data.book = BOOK;   // 保存书状态
   return data;
 }
 
@@ -615,6 +684,11 @@ function applyData(data) {
     const el = document.getElementById(id);
     if (el && data[id] !== undefined) el.checked = !!data[id];
   });
+  // 恢复书状态
+  if (data.book === 'blue' || data.book === 'red') {
+    BOOK = data.book;
+    updateBookUI();
+  }
   updateArmorCount();
   calc();
 }
@@ -651,12 +725,15 @@ function calcPhysPanel() {
   const opt枪管 = getSkillOption('强力枪管', document.getElementById('skill_强力枪管').value);
   const opt零件 = getSkillOption('零件改造', document.getElementById('skill_零件改造').value);
   const opt攻击 = getSkillOption('攻击', document.getElementById('skill_攻击').value);
+  const opt不屈 = getSkillOption('不屈', document.getElementById('skill_不屈').value);
   const opt火场 = getSkillOption('火场怪力', document.getElementById('skill_火场怪力').value);
   const opt太鼓 = getSkillOption('强化太鼓之技', document.getElementById('skill_强化太鼓之技').value);
   const opt花链 = getSkillOption('花链', document.getElementById('skill_花链').value);
   const opt激励 = getSkillOption('激励', document.getElementById('skill_激励').value);
   const opt怨恨 = getSkillOption('怨恨', document.getElementById('skill_怨恨').value);
   const opt业铠修罗 = getSkillOption('业铠修罗', document.getElementById('skill_业铠修罗').value);
+  const opt气血觉醒 = getSkillOption('气血觉醒', document.getElementById('skill_气血觉醒').value);
+  const opt伏魔 = getSkillOption('伏魔耗命', document.getElementById('skill_伏魔耗命').value);
   const opt连击 = getSkillOption('连击', document.getElementById('skill_连击').value);
   const melody = getMelody();   // 5 条旋律汇总（互斥已处理）
 
@@ -665,7 +742,7 @@ function calcPhysPanel() {
 
   // 乘区（攻击技能倍率也在这里，其固定加点并入下面的加法区）
   // 注意：笛子旋律按公式在最后单独乘，这里先不算它
-  const mult = opt攻击.value * opt火场.value * opt太鼓.value;
+  const mult = opt攻击.value * opt不屈.value * opt火场.value * opt太鼓.value;
 
   // 物品固定加点（可多选叠加）
   let itemFlat = 0;
@@ -674,8 +751,15 @@ function calcPhysPanel() {
     if (el && el.checked) itemFlat += +el.value || 0;
   });
 
-  // 加法区：花链 + 物品 + 激励 + 怨恨 + 业铠【修罗】 + 连击攻击 + 攻击技能固定加点 + 其他技能攻击力
-  const flat = opt花链.value + itemFlat + opt激励.value + opt怨恨.value + opt业铠修罗.value
+  // 业铠【修罗】：红书加物理攻击力；蓝书改为属性倍率（不在物理加法区）
+  const 业铠平A = isBlue() ? 0 : opt业铠修罗.value;
+  // 伏魔耗命：蓝书改为加攻击力（红书是加属性，不进物理）
+  const 伏魔平A = isBlue() ? (opt伏魔.blueAtk || 0) : 0;
+
+  // 加法区：花链 + 物品 + 激励 + 怨恨 + 业铠【修罗】(红书) + 气血觉醒 + 伏魔(蓝书) + 连击攻击 + 攻击技能固定加点 + 其他技能攻击力
+  const flat = opt花链.value + itemFlat + opt激励.value + opt怨恨.value + 业铠平A
+             + (opt气血觉醒.atk || 0)
+             + 伏魔平A
              + (opt连击.atk || 0)
              + (opt攻击.flat || 0) + otherSkillAtk;
 
@@ -687,7 +771,7 @@ function calcPhysPanel() {
     physPanel, base, gunBarrel, mult, flat, itemFlat,
     weaponPanel, qiguaiPanel, otherSkillAtk,
     melody,
-    opt枪管, opt零件, opt攻击, opt火场, opt太鼓, opt花链, opt激励, opt怨恨, opt业铠修罗, opt连击
+    opt枪管, opt零件, opt攻击, opt不屈, opt火场, opt太鼓, opt花链, opt激励, opt怨恨, opt业铠修罗, opt气血觉醒, opt伏魔, opt连击
   };
 }
 
@@ -701,6 +785,7 @@ function calcResist() {
   const opt激昂 = getSkillOption('激昂', document.getElementById('skill_激昂').value);
   const opt防御 = getSkillOption('防御', document.getElementById('skill_防御').value);
   const opt龙气 = getSkillOption('龙气转换', document.getElementById('skill_龙气转换').value);
+  const opt业铠修罗 = getSkillOption('业铠修罗', document.getElementById('skill_业铠修罗').value);
   const opt火 = getSkillOption('火耐性', document.getElementById('skill_火耐性').value);
   const opt水 = getSkillOption('水耐性', document.getElementById('skill_水耐性').value);
   const opt雷 = getSkillOption('雷耐性', document.getElementById('skill_雷耐性').value);
@@ -708,10 +793,13 @@ function calcResist() {
   const opt龙 = getSkillOption('龙耐性', document.getElementById('skill_龙耐性').value);
   const melody = getMelody();
 
-  // 全耐性加成：激昂 + 防御 + 龙气转换Lv3(+10) + 笛子「全耐性异常状态无效」
-  let bonus = opt激昂.value + opt防御.value;
+  // 全耐性加成：激昂 + 防御 + 龙气转换Lv3(+10) + 笛子「全耐性异常状态无效」+ 业铠蓝书扣耐性
+  // 蓝书：激昂不增加耐性（龙气 +10 仍保留）
+  let bonus = (isBlue() ? 0 : opt激昂.value) + opt防御.value;
   if (opt龙气.key === '3') bonus += 10;
   if (melody.resist) bonus += melody.resist;
+  // 蓝书：业铠【修罗】扣全耐性（-10/-25/-50）
+  if (isBlue()) bonus += (opt业铠修罗.blueResist || 0);
 
   // 单项耐性技能
   const cap = v => Math.min(v, 50);
@@ -723,13 +811,14 @@ function calcResist() {
 
   const total = f + w + t + i + d;
 
+  // 蓝书：龙气转换不提供耐性转属性
   let dragonFlat = 0;
-  if (opt龙气.key === '3') {
+  if (opt龙气.key === '3' && !isBlue()) {
     dragonFlat = total / opt龙气.value;
   }
 
   return {
-    total, dragonFlat, opt龙气, opt激昂, opt防御, f, w, t, i, d, bonus,
+    total, dragonFlat, opt龙气, opt激昂, opt防御, opt业铠修罗, f, w, t, i, d, bonus,
     opt火, opt水, opt雷, opt冰, opt龙
   };
 }
@@ -737,8 +826,9 @@ function calcResist() {
 function calcOne(mode) {
   const phys = calcPhysPanel();
   const physPanel = phys.physPanel;
-  const physAbsorb = +document.getElementById('physAbsorb').value || 0;
-  const elemAbsorb = +document.getElementById('elemAbsorb').value || 0;
+  // 输入的是肉质（100=吸收100%），内部换算成吸收系数（÷100）
+  const physAbsorb = (+document.getElementById('physAbsorb').value || 0) / 100;
+  const elemAbsorb = (+document.getElementById('elemAbsorb').value || 0) / 100;
   const otherFlat = +document.getElementById('otherFlat').value || 0;
 
   const opt超会心 = getSkillOption('超会心', document.getElementById('skill_超会心').value);
@@ -750,6 +840,8 @@ function calcOne(mode) {
   const opt属痛 = getSkillOption('属痛龙珠', document.getElementById('skill_属痛龙珠').value);
   const opt弱特 = getSkillOption('弱点特效属性', document.getElementById('skill_弱点特效属性').value);
   const opt属会 = getSkillOption('会心击属性', document.getElementById('skill_会心击属性').value);
+  const opt气血觉醒 = getSkillOption('气血觉醒', document.getElementById('skill_气血觉醒').value);
+  const opt业铠修罗 = getSkillOption('业铠修罗', document.getElementById('skill_业铠修罗').value);
 
   const resist = calcResist();
   const dragonFlat = resist.dragonFlat;
@@ -771,13 +863,17 @@ function calcOne(mode) {
 
   const physDmg = physPanel * 超会心倍率 * (FIXED.motion / 100) * physAbsorb;
 
-  const elemBase = FIXED.baseElem * opt属攻.value * opt奋斗.value * opt钢壳.value;
+  // 业铠【修罗】：蓝书时作为属性倍率（与奋斗同乘区）
+  const 业铠蓝倍率 = isBlue() ? (opt业铠修罗.blueElemMult || 1) : 1;
+  const elemBase = FIXED.baseElem * opt属攻.value * opt奋斗.value * opt钢壳.value * 业铠蓝倍率;
 
   const elemAtkFlat = opt属攻.flat || 0;
   const chainFlat = opt连击.value || 0;
-  const fumoFlat = opt伏魔.value || 0;
+  // 伏魔耗命：红书加属性；蓝书改为加攻击力（不进属性合计）
+  const fumoFlat = isBlue() ? 0 : (opt伏魔.value || 0);
+  const qixueFlat = opt气血觉醒.elem || 0;
 
-  const elemTotal = elemBase + elemAtkFlat + chainFlat + fumoFlat + dragonFlat + otherFlat;
+  const elemSum = elemBase + elemAtkFlat + chainFlat + fumoFlat + qixueFlat + dragonFlat + otherFlat;
 
   let 属痛倍率 = opt属痛.value;
   if (opt属痛.key === '1' && elemAbsorb * 100 < 25) 属痛倍率 = 1.0;
@@ -785,11 +881,13 @@ function calcOne(mode) {
   let 弱特倍率 = opt弱特.value;
   if (opt弱特.key !== '0' && elemAbsorb * 100 < 20) 弱特倍率 = 1.0;
 
-  // 笛子属性攻击力提升：仅由笛子旋律「属性攻击力提升」决定（×1.10）
+  // 笛子属性攻击力提升：由笛子旋律「属性攻击力提升」决定（×1.10）
+  // 该旋律在游戏面板里直接体现为属性值提升，故乘进「属性值合计」
   const 笛子倍率 = melody.elemMult;
+  const elemTotal = elemSum * 笛子倍率;
 
   const elemPercent = elemTotal / 100;
-  const elemDmg = elemPercent * 属痛倍率 * 弱特倍率 * 属会倍率 * 笛子倍率 * elemAbsorb * physPanel;
+  const elemDmg = elemPercent * 属痛倍率 * 弱特倍率 * 属会倍率 * elemAbsorb * physPanel;
 
   const total = physDmg + elemDmg;
 
@@ -799,9 +897,10 @@ function calcOne(mode) {
     opt超会心, opt属攻, opt奋斗, opt钢壳, opt连击, opt伏魔,
     opt属痛, opt弱特, opt属会,
     超会心倍率, 属会倍率,
-    elemBase, elemAtkFlat, chainFlat, fumoFlat, dragonFlat, elemTotal,
+    elemBase, elemAtkFlat, chainFlat, fumoFlat, qixueFlat, dragonFlat, elemSum, elemTotal,
     属痛倍率, 弱特倍率, 笛子倍率,
     elemAbsorb, resist,
+    opt气血觉醒, opt业铠修罗,
     mode
   };
 }
@@ -872,52 +971,56 @@ function calc() {
   document.getElementById('formulaBox').innerHTML = `
     <div style="color:#88ccff; margin-bottom:6px;">一、耐性部分</div>
     <div style="font-size:0.9em; color:#777;">每项真实耐性 = 装备求和值 + 全耐性加成 + 单项耐性技能，封顶 50</div>
-    <div>全耐性加成：激昂 ${r2.opt激昂.text} + 防御 ${r2.opt防御.text}${r2.opt龙气.key === '3' ? ' + 龙气转换+10' : ''} = 每项 +${r2.bonus}</div>
+    <div>全耐性加成：激昂 ${isBlue() ? '0（蓝书不生效）' : r2.opt激昂.text} + 防御 ${r2.opt防御.text}${r2.opt龙气.key === '3' ? ' + 龙气转换+10' : ''}${isBlue() && r2.opt业铠修罗.blueResist ? ` + 业铠【修罗】${r2.opt业铠修罗.blueResist}` : ''} = 每项 +${r2.bonus}</div>
     <div>单项耐性技能：火 ${r2.opt火.value} / 水 ${r2.opt水.value} / 雷 ${r2.opt雷.value} / 冰 ${r2.opt冰.value} / 龙 ${r2.opt龙.value}</div>
     <div>真实耐性：火 ${r2.f} / 水 ${r2.w} / 雷 ${r2.t} / 冰 ${r2.i} / 龙 ${r2.d}</div>
     <div>真实总耐性 = ${r2.f} + ${r2.w} + ${r2.t} + ${r2.i} + ${r2.d} = <b>${r2.total}</b></div>
     <div>龙气转换：${r2.opt龙气.text}，龙转属性值 = ${r2.total} ÷ ${f(r2.opt龙气.value)} = <b>${f(r2.dragonFlat, 3)}</b></div>
 
     <div style="color:#88ccff; margin:14px 0 6px;">二、物理面板</div>
-    <div style="font-size:0.9em; color:#777;">（（武器基础面板×（强力枪管+零件改造）+怪异强化）×攻击×火场怪力×强化太鼓之技 + 花链 + 物品 + 各技能攻击力）× 笛子旋律</div>
+    <div style="font-size:0.9em; color:#777;">（（武器基础面板×（强力枪管+零件改造）+怪异强化）×攻击×不屈×火场怪力×强化太鼓之技 + 花链 + 物品 + 各技能攻击力）× 笛子旋律</div>
     <div>强力枪管倍率 = ${f(m.phys.gunBarrel, 3)}（枪管 ${f(m.phys.opt枪管.value, 3)} + 零件改造 ${f(m.phys.opt零件.value, 3)}）</div>
     <div>内部底数 = 武器面板 ${f(m.phys.weaponPanel)} × ${f(m.phys.gunBarrel, 3)} + 怪异强化 ${f(m.phys.qiguaiPanel)} = <b>${f(m.phys.base)}</b></div>
-    <div>乘区 = 攻击 ${f(m.phys.opt攻击.value)} × 火场怪力 ${f(m.phys.opt火场.value)} × 强化太鼓之技 ${f(m.phys.opt太鼓.value)} = <b>${f(m.phys.mult, 4)}</b></div>
-    <div>加法区 = 花链 ${f(m.phys.opt花链.value)} + 物品 ${f(m.phys.itemFlat)} + 激励 ${f(m.phys.opt激励.value)} + 怨恨 ${f(m.phys.opt怨恨.value)} + 业铠【修罗】 ${f(m.phys.opt业铠修罗.value)} + 连击攻击 ${f(m.phys.opt连击.atk || 0)} + 攻击技能加点 ${f(m.phys.opt攻击.flat || 0)} + 其他技能攻击力 ${f(m.phys.otherSkillAtk)} = <b>${f(m.phys.flat)}</b></div>
-    <div>笛子旋律 = ${m.phys.melody.picked.length ? m.phys.melody.picked.map(it => `${it.label}（×${f(it.kind === 'crit' || it.kind === 'resist' ? 1 : it.value)}）`).join(' × ') : '未勾选'}（旋律倍率 ${f(m.phys.melody.physMult, 4)}）</div>
+    <div>乘区 = 攻击 ${f(m.phys.opt攻击.value)} × 不屈 ${f(m.phys.opt不屈.value)} × 火场怪力 ${f(m.phys.opt火场.value)} × 强化太鼓之技 ${f(m.phys.opt太鼓.value)} = <b>${f(m.phys.mult, 4)}</b></div>
+    <div>加法区 = 花链 ${f(m.phys.opt花链.value)} + 物品 ${f(m.phys.itemFlat)} + 激励 ${f(m.phys.opt激励.value)} + 怨恨 ${f(m.phys.opt怨恨.value)} + 业铠【修罗】 ${f(isBlue() ? 0 : m.phys.opt业铠修罗.value)}${isBlue() ? '（蓝书不生效）' : ''} + 气血觉醒 ${f(m.phys.opt气血觉醒.atk || 0)} + 伏魔耗命 ${f(isBlue() ? (m.phys.opt伏魔.blueAtk || 0) : 0)}${isBlue() ? '（蓝书加攻击）' : ''} + 连击攻击 ${f(m.phys.opt连击.atk || 0)} + 攻击技能加点 ${f(m.phys.opt攻击.flat || 0)} + 其他技能攻击力 ${f(m.phys.otherSkillAtk)} = <b>${f(m.phys.flat)}</b></div>
+    <div>笛子旋律 = ${(() => { const p = m.phys.melody.picked.filter(it => it.kind === 'physMult'); return p.length ? p.map(it => `${it.label}（×${f(it.value)}）`).join(' × ') : '无物理加成旋律'; })()}（物理旋律倍率 ${f(m.phys.melody.physMult, 4)}）</div>
     <div>物理面板 = (${f(m.phys.base)} × ${f(m.phys.mult, 4)} + ${f(m.phys.flat)}) × ${f(m.phys.melody.physMult, 4)} = <b style="color:#ffcc66;">${f(m.phys.physPanel)}</b></div>
 
     <div style="color:#88ccff; margin:14px 0 6px;">三、物理伤害</div>
-    <div style="font-size:0.9em; color:#777;">物理面板 × 超会心 × 动作值 × 物理吸收</div>
-    <div>非会心：${f(m.physPanel)} × 1 × ${f(FIXED.motion / 100, 4)} × ${f(m.physAbsorb)} = <b>${f(normal.physDmg)}</b></div>
-    <div>会　心：${f(m.physPanel)} × ${f(crit.超会心倍率)} × ${f(FIXED.motion / 100, 4)} × ${f(m.physAbsorb)} = <b>${f(crit.physDmg)}</b></div>
-    <div>负会心：${f(m.physPanel)} × ${f(NEG_CRIT_PHYS)} × ${f(FIXED.motion / 100, 4)} × ${f(m.physAbsorb)} = <b>${f(neg.physDmg)}</b></div>
+    <div style="font-size:0.9em; color:#777;">物理面板 × 超会心 × 动作值 × 物理肉质（÷100）</div>
+    <div>非会心：${f(m.physPanel)} × 1 × ${f(FIXED.motion / 100, 4)} × (${f(m.physAbsorb * 100)} ÷ 100) = <b style="color:#88ccff;">${f(normal.physDmg)}</b></div>
+    <div>会　心：${f(m.physPanel)} × ${f(crit.超会心倍率)} × ${f(FIXED.motion / 100, 4)} × (${f(m.physAbsorb * 100)} ÷ 100) = <b style="color:#ffaa66;">${f(crit.physDmg)}</b></div>
+    <div>负会心：${f(m.physPanel)} × ${f(NEG_CRIT_PHYS)} × ${f(FIXED.motion / 100, 4)} × (${f(m.physAbsorb * 100)} ÷ 100) = <b style="color:#ff6666;">${f(neg.physDmg)}</b></div>
     <div style="font-size:0.9em; color:#777;">超会心：${m.opt超会心.text}（倍率 ${f(m.opt超会心.value)}）</div>
 
     <div style="color:#88ccff; margin:14px 0 6px;">四、属性基础</div>
-    <div style="font-size:0.9em; color:#777;">属贯自带 × 属性攻击力强化 × 奋斗 × 钢壳/炎鳞</div>
-    <div>${f(FIXED.baseElem)} × ${f(m.opt属攻.value)} × ${f(m.opt奋斗.value)} × ${f(m.opt钢壳.value)} = <b>${f(m.elemBase, 3)}</b></div>
+    <div style="font-size:0.9em; color:#777;">属贯自带 × 属性攻击力强化 × 奋斗 × 钢壳/炎鳞${isBlue() ? ' × 业铠【修罗】(蓝书属性倍率)' : ''}</div>
+    <div>${f(FIXED.baseElem)} × ${f(m.opt属攻.value)} × ${f(m.opt奋斗.value)} × ${f(m.opt钢壳.value)}${isBlue() ? ` × ${f(m.opt业铠修罗.blueElemMult || 1)}` : ''} = <b>${f(m.elemBase, 3)}</b></div>
     <div style="font-size:0.9em; color:#777;">属性攻击力强化：${m.opt属攻.text}（倍率 ${f(m.opt属攻.value)}）</div>
     <div style="font-size:0.9em; color:#777;">奋斗：${m.opt奋斗.text}（倍率 ${f(m.opt奋斗.value)}）</div>
     <div style="font-size:0.9em; color:#777;">钢壳/炎鳞：${m.opt钢壳.text}（倍率 ${f(m.opt钢壳.value)}）</div>
+    ${isBlue() ? `<div style="font-size:0.9em; color:#777;">业铠【修罗】(蓝书)：${m.opt业铠修罗.blueText || m.opt业铠修罗.text}</div>` : ''}
 
     <div style="color:#88ccff; margin:14px 0 6px;">五、属性值合计</div>
-    <div style="font-size:0.9em; color:#777;">自带 + 属攻加点 + 连击 + 伏魔 + 龙转 + 其他</div>
-    <div>${f(m.elemBase, 3)} + ${f(m.elemAtkFlat)} + ${f(m.chainFlat)} + ${f(m.fumoFlat)} + ${f(m.dragonFlat, 3)} + ${f(m.otherFlat)} = <b>${f(m.elemTotal, 3)}</b></div>
+    <div style="font-size:0.9em; color:#777;">（自带 + 属攻加点 + 连击 + 伏魔 + 气血觉醒 + 龙转 + 其他）× 笛子「属性攻击力提升」</div>
+    <div>${f(m.elemBase, 3)} + 属攻加点 ${f(m.elemAtkFlat)} + 连击 ${f(m.chainFlat)} + 伏魔 ${f(m.fumoFlat)} + 气血觉醒 ${f(m.qixueFlat)} + 龙转 ${f(m.dragonFlat, 3)} + 其他 ${f(m.otherFlat)} = ${f(m.elemSum, 3)}</div>
+    <div>${f(m.elemSum, 3)} × 笛子 ${f(m.笛子倍率, 2)} = <b style="color:#ffcc66;">${f(m.elemTotal, 3)}</b></div>
     <div style="font-size:0.9em; color:#777;">属性攻击力强化：${m.opt属攻.text}（加点 +${m.opt属攻.flat || 0}）</div>
     <div style="font-size:0.9em; color:#777;">连击：${m.opt连击.text}（加点 +${m.opt连击.value}）</div>
-    <div style="font-size:0.9em; color:#777;">伏魔耗命：${m.opt伏魔.text}（加点 +${m.opt伏魔.value}）</div>
+    <div style="font-size:0.9em; color:#777;">气血觉醒：${m.opt气血觉醒.text}（属性加点 +${m.qixueFlat}）</div>
+    <div style="font-size:0.9em; color:#777;">伏魔耗命：${m.opt伏魔.text}（${isBlue() ? `蓝书 → 攻击 +${m.opt伏魔.blueAtk || 0}，不计入属性` : `属性加点 +${m.opt伏魔.value}`}）</div>
+    <div style="font-size:0.9em; color:#777;">龙气转换：${m.resist.opt龙气.text}，龙转属性值 = ${isBlue() ? '0（蓝书不转属性）' : `${m.resist.total} ÷ ${f(m.resist.opt龙气.value)} = ${f(m.dragonFlat, 3)}`}</div>
     <div style="font-size:0.9em; color:#777;">其他：+${f(m.otherFlat, 2)}</div>
+    <div style="font-size:0.9em; color:#777;">笛子旋律「属性攻击力提升」：${m.笛子倍率 === 1 ? '未勾选' : `×${f(m.笛子倍率, 2)}`}（已计入属性值合计）</div>
 
     <div style="color:#88ccff; margin:14px 0 6px;">六、属性伤害</div>
-    <div style="font-size:0.9em; color:#777;">(属性值÷100) × 属痛 × 弱特 × 属会 × 笛子 × 属性吸收 × 物理面板</div>
-    <div>非会心：(${f(m.elemTotal, 3)} ÷ 100) × ${f(m.属痛倍率)} × ${f(m.弱特倍率)} × 1 × ${f(m.笛子倍率)} × ${f(m.elemAbsorb)} × ${f(m.physPanel)} = <b>${f(normal.elemDmg)}</b></div>
-    <div>会　心：(${f(m.elemTotal, 3)} ÷ 100) × ${f(m.属痛倍率)} × ${f(m.弱特倍率)} × ${f(crit.属会倍率)} × ${f(m.笛子倍率)} × ${f(m.elemAbsorb)} × ${f(m.physPanel)} = <b>${f(crit.elemDmg)}</b></div>
-    <div>负会心：(${f(m.elemTotal, 3)} ÷ 100) × ${f(m.属痛倍率)} × ${f(m.弱特倍率)} × 1 × ${f(m.笛子倍率)} × ${f(m.elemAbsorb)} × ${f(m.physPanel)} = <b>${f(neg.elemDmg)}</b></div>
+    <div style="font-size:0.9em; color:#777;">(属性值÷100) × 属痛 × 弱特 × 属会 × 物理面板 × (属性肉质÷100)</div>
+    <div>非会心：(${f(m.elemTotal, 3)} ÷ 100) × ${f(m.属痛倍率)} × ${f(m.弱特倍率)} × 1 × ${f(m.physPanel)} × (${f(m.elemAbsorb * 100)} ÷ 100) = <b style="color:#88ccff;">${f(normal.elemDmg)}</b></div>
+    <div>会　心：(${f(m.elemTotal, 3)} ÷ 100) × ${f(m.属痛倍率)} × ${f(m.弱特倍率)} × ${f(crit.属会倍率)} × ${f(m.physPanel)} × (${f(m.elemAbsorb * 100)} ÷ 100) = <b style="color:#ffaa66;">${f(crit.elemDmg)}</b></div>
+    <div>负会心：(${f(m.elemTotal, 3)} ÷ 100) × ${f(m.属痛倍率)} × ${f(m.弱特倍率)} × 1 × ${f(m.physPanel)} × (${f(m.elemAbsorb * 100)} ÷ 100) = <b style="color:#ff6666;">${f(neg.elemDmg)}</b></div>
     <div style="font-size:0.9em; color:#777;">属痛龙珠：${m.opt属痛.text}（倍率 ${f(m.属痛倍率)}${m.opt属痛.key === '1' && m.elemAbsorb * 100 < 25 ? '，吸收不足25，未生效' : ''}）</div>
     <div style="font-size:0.9em; color:#777;">弱点特效【属性】：${m.opt弱特.text}（倍率 ${f(m.弱特倍率)}${m.opt弱特.key !== '0' && m.elemAbsorb * 100 < 20 ? '，吸收不足20，未生效' : ''}）</div>
     <div style="font-size:0.9em; color:#777;">会心击【属性】：${m.opt属会.text}（倍率 ${f(m.opt属会.value)}）</div>
-    <div style="font-size:0.9em; color:#777;">笛子旋律「属性攻击力提升」：${m.笛子倍率 === 1 ? '未勾选' : `×${f(m.笛子倍率, 2)}`}（合计倍率 ${f(m.笛子倍率)}）</div>
 
     <div style="color:#88ccff; margin:14px 0 6px;">七、最终伤害</div>
     <div>非会心：${f(normal.physDmg)} + ${f(normal.elemDmg)} = <b style="color:#88ccff;">${f(normal.total)}</b></div>
@@ -925,10 +1028,10 @@ function calc() {
     <div>负会心：${f(neg.physDmg)} + ${f(neg.elemDmg)} = <b style="color:#ff6666;">${f(neg.total)}</b></div>
 
     <div style="color:#88ccff; margin:14px 0 6px;">八、期望伤害</div>
-    <div>会心率来源：武器自带 ${f(weaponCrit)}% + 攻击猫 ${f(catCrit)}% + 看破 ${f(看破Crit)}% + 精神抖擞 ${f(精神抖擞Crit)}% + 奋斗 ${f(奋斗Crit)}% + 笛子「会心率提升」${f(fluitCrit)}% = 实际 ${f(critRateRaw)}%</div>
+    <div style="font-size:0.9em; color:#777;">会心率来源：武器自带 ${f(weaponCrit)}% + 攻击猫 ${f(catCrit)}% + 看破 ${f(看破Crit)}% + 精神抖擞 ${f(精神抖擞Crit)}% + 奋斗 ${f(奋斗Crit)}% + 笛子「会心率提升」${f(fluitCrit)}% = 实际 ${f(critRateRaw)}%</div>
     ${critRate >= 0
-      ? `<div>${f(normal.total)} × ${f(1 - critRate, 4)} + ${f(crit.total)} × ${f(critRate, 4)} = <b style="color:#ffcc66; font-size:1.15em;">${f(expected)}</b></div>`
-      : `<div>${f(normal.total)} × ${f(1 - Math.abs(critRate), 4)} + ${f(neg.total)} × ${f(Math.abs(critRate), 4)} = <b style="color:#ffcc66; font-size:1.15em;">${f(expected)}</b></div>`
+      ? `<div>非会心 ${f(normal.total)} × ${f(1 - critRate, 4)} + 会心 ${f(crit.total)} × ${f(critRate, 4)} = <b style="color:#ffcc66; font-size:1.15em;">${f(expected)}</b></div>`
+      : `<div>非会心 ${f(normal.total)} × ${f(1 - Math.abs(critRate), 4)} + 负会心 ${f(neg.total)} × ${f(Math.abs(critRate), 4)} = <b style="color:#ffcc66; font-size:1.15em;">${f(expected)}</b></div>`
     }
   `;
 }
@@ -969,9 +1072,34 @@ document.getElementById('btnReset').addEventListener('click', () => {
   }
 });
 
+// ---------- 书状态 UI ----------
+function updateBookUI() {
+  const red = document.getElementById('btnRed');
+  const blue = document.getElementById('btnBlue');
+  if (!red || !blue) return;
+  red.classList.toggle('active', BOOK === 'red');
+  blue.classList.toggle('active', BOOK === 'blue');
+  const hint = document.getElementById('bookHint');
+  if (hint) {
+    hint.textContent = BOOK === 'blue'
+      ? '蓝书：业铠【修罗】改为属性倍率（奋斗同乘区）并扣全耐性 -10/-25/-50；龙气转换不转属性（保留 +10 全耐性）；激昂不加耐性；伏魔耗命改为加攻击力。'
+      : '红书：业铠【修罗】+攻击力；伏魔耗命加属性值。';
+  }
+  // 切书后刷新技能下拉选项文字（蓝书用 blueText）
+  refreshSkillTexts();
+}
+
+document.getElementById('btnRed').addEventListener('click', () => {
+  BOOK = 'red'; updateBookUI(); calc();
+});
+document.getElementById('btnBlue').addEventListener('click', () => {
+  BOOK = 'blue'; updateBookUI(); calc();
+});
+
 initSelects();
 initWeapons();
 initArmor();
+updateBookUI();
 const saved = loadData();
 applyData(saved || DEFAULTS);
 
@@ -1001,6 +1129,15 @@ document.getElementById('btnRefresh').addEventListener('click', () => {
     showToast('正在刷新更新…');
     setTimeout(hardRefresh, 300);
   }
+});
+
+// 「计算公式」折叠/展开
+document.getElementById('formulaToggle').addEventListener('click', () => {
+  const box = document.getElementById('formulaBox');
+  const arrow = document.getElementById('formulaArrow');
+  const open = box.style.display !== 'none';
+  box.style.display = open ? 'none' : 'block';
+  arrow.textContent = open ? '▼ 展开' : '▲ 收起';
 });
 
 // 注册 Service Worker，并检测到有新版本时自动更新
