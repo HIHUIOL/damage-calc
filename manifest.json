@@ -1,6 +1,6 @@
 {
   "name": "属贯伤害计算器",
-  "short_name": "伤害计算",
+  "short_name": "属贯伤害计算器",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#1a1a1a",
